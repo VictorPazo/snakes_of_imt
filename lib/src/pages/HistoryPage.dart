@@ -1,0 +1,1 @@
+// Page with history of snakes already captured
