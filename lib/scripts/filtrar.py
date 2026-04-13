@@ -15,9 +15,9 @@ pasta_fora = "fora_lista"
 
 os.makedirs(pasta_fora, exist_ok=True)
 
-# -------------------------
+
 # 1. Ler espécies do .md
-# -------------------------
+
 especies = set()
 
 with open(arquivo_md, "r", encoding="utf-8") as f:
@@ -32,9 +32,8 @@ with open(arquivo_md, "r", encoding="utf-8") as f:
 print("Espécies carregadas:", len(especies))
 
 
-# -------------------------
 # 2. Percorrer anos
-# -------------------------
+
 for ano in os.listdir(pasta_dados):
 
     caminho_ano = os.path.join(pasta_dados, ano)
@@ -51,9 +50,9 @@ for ano in os.listdir(pasta_dados):
 
         especie_nome = especie_pasta.replace("_", " ").strip()
 
-        # -------------------------
+       
         # 3. DESTINO CORRETO
-        # -------------------------
+        
         if especie_nome in especies:
 
             destino_base = os.path.join(pasta_especies, especie_nome)
@@ -72,9 +71,9 @@ for ano in os.listdir(pasta_dados):
             print(f"Movida para espécie: {caminho_especie} → {destino}")
 
         else:
-            # -------------------------
+            
             # 4. FORA DA LISTA
-            # -------------------------
+           
             destino_ano = os.path.join(pasta_fora, ano)
             os.makedirs(destino_ano, exist_ok=True)
 

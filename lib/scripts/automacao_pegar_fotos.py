@@ -2,10 +2,10 @@ import os
 import requests
 import time
 
-# pasta base (onde estão suas espécies)
+# pasta base 
 pasta_base = "serpentes"
 
-# quantidade de imagens por espécie (limite)
+# quantidade de imagens por espécie 
 MAX_IMAGENS = 20
 
 # delay pra não tomar bloqueio
@@ -64,9 +64,7 @@ def baixar_imagens(especie):
         params["page"] += 1
 
 
-# -------------------------
 # Rodar para todas espécies
-# -------------------------
 for especie in os.listdir(pasta_base):
     caminho = os.path.join(pasta_base, especie)
 

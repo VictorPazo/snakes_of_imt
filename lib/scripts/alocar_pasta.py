@@ -11,7 +11,7 @@ os.makedirs(pasta_base, exist_ok=True)
 def nome_valido(linha):
     linha = linha.strip()
 
-    # Ignorar linhas vazias ou títulos
+    
     if not linha:
         return False
     if linha.startswith("#"):
@@ -19,7 +19,7 @@ def nome_valido(linha):
     if linha.startswith("**"):
         return False
 
-    # Ignorar linhas com apenas uma letra (tipo "A", "B", etc.)
+    
     if len(linha) == 1:
         return False
 
@@ -32,13 +32,13 @@ with open(arquivo_md, "r", encoding="utf-8") as f:
         if not nome_valido(linha):
             continue
 
-        # Remove textos entre parênteses
+        
         linha = re.sub(r"\(.*?\)", "", linha).strip()
 
-        # Remove caracteres problemáticos
+        
         nome_pasta = linha.replace("/", "-")
 
-        # Caminho final
+       
         caminho = os.path.join(pasta_base, nome_pasta)
 
         try:
