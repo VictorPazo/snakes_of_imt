@@ -23,8 +23,6 @@ class _LoginPageState extends State<LoginPage> {
         children: [
 
           const SizedBox(height: 80),
-
-          // 🔝 LOGO
           CircleAvatar(
             radius: 40,
             backgroundColor: Colors.white,
@@ -59,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
 
           const SizedBox(height: 30),
 
-          // 🔲 CARD BRANCO
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -96,8 +93,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 20),
-
-                  // 🔥 BOTÃO LOGIN
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -124,8 +119,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
 
                   const SizedBox(height: 15),
-
-                  // 👉 IR PRA CADASTRO
                   GestureDetector(
                     onTap: () {
                       Navigator.push(

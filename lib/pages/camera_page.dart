@@ -40,11 +40,9 @@ class _CameraPageState extends State<CameraPage> {
     setState(() {});
   }
 
-  // 🔥 POPUP INICIAL
   Future<void> showTutorialPopup() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 🔥 DESCOMENTA SE QUISER RESETAR O POPUP PRA TESTE
     // await prefs.remove('naoMostrarTutorial');
 
     bool naoMostrar = prefs.getBool('naoMostrarTutorial') ?? false;
@@ -131,7 +129,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  // 🔥 POPUP DE CONFIRMAÇÃO
   Future<void> showConfirmDialog(String imagePath, {required bool isFromGallery}) async {
     showDialog(
       context: context,
@@ -212,7 +209,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  // 📸 CAMERA
   Future<void> takePhoto() async {
     if (_controller != null && _controller!.value.isInitialized) {
       final image = await _controller!.takePicture();
@@ -220,7 +216,6 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
-  // 🖼 GALERIA
   Future<void> pickFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -242,7 +237,6 @@ class _CameraPageState extends State<CameraPage> {
       body: Stack(
         children: [
 
-          // 📷 CAMERA
           Center(
             child: _controller == null || !_controller!.value.isInitialized
                 ? const CircularProgressIndicator(color: Colors.white)
@@ -260,7 +254,6 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
-          // 🔝 TOPO
           Positioned(
             top: 60,
             left: 0,
@@ -294,7 +287,6 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
-          // 🔻 BOTÕES
           Positioned(
             bottom: 30,
             left: 0,

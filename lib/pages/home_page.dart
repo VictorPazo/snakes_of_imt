@@ -11,12 +11,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedIndex = 1;
 
-  // 🔥 COR PADRÃO
   final Color primaryGreen = const Color(0x99115F15);
 
   void onItemTapped(int index) {
     switch (index) {
-      case 3: // CAMERA
+      case 3:
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -30,14 +29,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryGreen, // ✅ COR APLICADA
-
+      backgroundColor: primaryGreen,
       body: Column(
         children: [
-
           const SizedBox(height: 80),
-
-          // 🔝 LOGO + NOME
           Column(
             children: [
               CircleAvatar(
@@ -65,13 +60,10 @@ class _HomePageState extends State<HomePage> {
           ),
 
           const SizedBox(height: 40),
-
-          // 🔥 BLOCO CENTRAL MELHORADO
           Expanded(
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  // 👉 abre câmera direto
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -83,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                   width: MediaQuery.of(context).size.width * 0.8,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF115F15), // verde sólido
+                    color: const Color(0xFF115F15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Column(
@@ -119,7 +111,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
-      // 🔻 MENU
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: onItemTapped,

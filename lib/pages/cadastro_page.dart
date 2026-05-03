@@ -14,13 +14,12 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController confirmaSenhaController = TextEditingController();
   final TextEditingController telefoneController = TextEditingController();
 
-  // 🔥 COR PADRÃO DO APP
   final Color primaryGreen = const Color(0x99115F15);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryGreen, // ✅ AQUI A COR CORRETA
+      backgroundColor: primaryGreen,
       body: SafeArea(
         child: Column(
           children: [
@@ -62,7 +61,7 @@ class _CadastroPageState extends State<CadastroPage> {
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF115F15), // verde sólido no botão
+                            backgroundColor: const Color(0xFF115F15),
                             padding: const EdgeInsets.all(15),
                           ),
                           child: const Text("Realizar Cadastro"),
