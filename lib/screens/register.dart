@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -57,8 +58,43 @@ class _CadastroPageState extends State<CadastroPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
+                          onPressed: () async {
+                            if (senhaController.text != confirmaSenhaController.text) {
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('As senhas não coincidem'),
+                                ),
+                              );
+
+                              return;
+                            }
+
+                            final authService = AuthService();
+
+                            final erro = await authService.cadastrarUsuario(
+                              nome: nomeController.text,
+                              email: emailController.text,
+                              senha: senhaController.text,
+                              telefone: telefoneController.text,
+                            );
+
+                            if (erro == null) {
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Usuário cadastrado com sucesso'),
+                                ),
+                              );
+
+                            } else {
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(erro),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF115F15),
