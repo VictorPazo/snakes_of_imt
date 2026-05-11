@@ -12,7 +12,6 @@ class AuthService {
   }) async {
 
     try {
-
       final AuthResponse response =
           await supabase.auth.signUp(
         email: email,
@@ -38,4 +37,23 @@ class AuthService {
       return e.toString();
     }
   }
+
+  Future<String?> login({
+    required String email,
+    required String senha,
+  }) async {
+
+    try {
+      await supabase.auth.signInWithPassword(
+        email: email,
+        password: senha,
+      );
+
+      return null;
+
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
 }
