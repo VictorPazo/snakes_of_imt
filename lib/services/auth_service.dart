@@ -8,7 +8,8 @@ class AuthService {
     required String nome,
     required String email,
     required String senha,
-    required String telefone,
+    required String estado,
+    required String cidade,
   }) async {
 
     try {
@@ -28,7 +29,8 @@ class AuthService {
         'id': user.id,
         'name': nome,
         'mail': email,
-        'phone': telefone,
+        'state': estado,
+        'city': cidade,
       });
 
       return null;
