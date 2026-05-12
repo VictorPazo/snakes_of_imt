@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 import 'camera.dart';
+import 'configuration.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,50 +12,92 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
   int selectedIndex = 1;
 
-  final Color primaryGreen = const Color(0x99115F15);
+  final Color primaryGreen =
+  const Color(0x99115F15);
 
   void onItemTapped(int index) {
+
     switch (index) {
-      case 3:
+
+    // ⚙️ CONFIGURAÇÕES
+      case 0:
+
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const CameraPage(),
+            builder: (_) => ConfigurationPage(),
           ),
         );
+
+        break;
+
+    // 📸 CAMERA
+      case 3:
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CameraPage(),
+          ),
+        );
+
         break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       backgroundColor: primaryGreen,
+
       body: Column(
+
         children: [
+
           const SizedBox(height: 80),
+
+          // 🔝 LOGO + NOME
           Column(
+
             children: [
+
               CircleAvatar(
+
                 radius: 40,
+
                 backgroundColor: Colors.white,
+
                 child: ClipOval(
+
                   child: Image.asset(
+
                     'assets/logo.png',
+
                     width: 70,
                     height: 70,
+
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
+
               const SizedBox(height: 10),
+
               const Text(
+
                 "SerPython",
+
                 style: TextStyle(
+
                   color: Colors.white,
+
                   fontSize: 28,
+
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -60,45 +105,86 @@ class _HomePageState extends State<HomePage> {
           ),
 
           const SizedBox(height: 40),
+
+          // 🐍 CARD CENTRAL
           Expanded(
+
             child: Center(
+
               child: GestureDetector(
+
                 onTap: () {
+
                   Navigator.push(
+
                     context,
+
                     MaterialPageRoute(
-                      builder: (_) => const CameraPage(),
+                      builder: (_) =>
+                      const CameraPage(),
                     ),
                   );
                 },
+
                 child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
+
+                  width:
+                  MediaQuery.of(context)
+                      .size
+                      .width * 0.8,
+
                   height: 200,
+
                   decoration: BoxDecoration(
+
                     color: const Color(0xFF115F15),
-                    borderRadius: BorderRadius.circular(20),
+
+                    borderRadius:
+                    BorderRadius.circular(20),
                   ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+
+                  child: Column(
+
+                    mainAxisAlignment:
+                    MainAxisAlignment.center,
+
                     children: [
-                      Icon(
+
+                      const Icon(
+
                         Icons.camera_alt,
+
                         color: Colors.white,
+
                         size: 40,
                       ),
-                      SizedBox(height: 10),
+
+                      const SizedBox(height: 10),
+
                       Text(
-                        "Identificar serpente",
-                        style: TextStyle(
+
+                        "identify_snake".tr(),
+
+                        style: const TextStyle(
+
                           color: Colors.white,
+
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+
+                          fontWeight:
+                          FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 5),
+
+                      const SizedBox(height: 5),
+
                       Text(
-                        "Toque para tirar uma foto",
-                        style: TextStyle(color: Colors.white70),
+
+                        "tap_take_photo".tr(),
+
+                        style: const TextStyle(
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -111,17 +197,40 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
+      // 🔻 NAVBAR
       bottomNavigationBar: BottomNavigationBar(
+
         currentIndex: selectedIndex,
+
         onTap: onItemTapped,
+
         type: BottomNavigationBarType.fixed,
+
         selectedItemColor: Colors.black,
+
         unselectedItemColor: Colors.black54,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: ""),
+
+        items: [
+
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings),
+            label: "settings".tr(),
+          ),
+
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: "home".tr(),
+          ),
+
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.history),
+            label: "history".tr(),
+          ),
+
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.camera_alt),
+            label: "camera".tr(),
+          ),
         ],
       ),
     );

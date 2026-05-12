@@ -1,0 +1,61 @@
+{
+  "camera_capture": "Capture image",
+  "tutorial_title": "How to use:",
+  "tutorial_never_show": "Don't show again",
+  "close": "Close",
+
+  "tutorial_text":
+  "1. Capture in a well-lit place.\n\n2. Use a clear image.\n\n3. Center the snake.\n\n4. Use gallery if desired.\n\nKeep a safe distance!",
+
+  "confirm_title": "Do you want to:",
+
+  "confirm_capture": "Confirm capture",
+  "new_capture": "Take another photo",
+
+  "confirm_new_photo": "Confirm new photo",
+  "choose_new_photo": "Choose another photo",
+
+  "identify_snake": "Identify snake",
+  "tap_take_photo": "Tap to take a photo",
+
+  "settings": "Settings",
+  "home": "Home",
+  "history": "History",
+  "camera": "Camera",
+
+  "welcome": "Welcome!",
+  "account": "Account",
+  "preferences": "Preferences",
+  "ai": "Artificial Intelligence",
+
+  "language": "Language",
+  "about": "About",
+
+  "user": "User",
+  "no_email": "No email",
+
+  "enable_notifications": "Enable notifications",
+  "show_tutorial_again": "Show tutorial again",
+
+  "tutorial_reset": "Tutorial successfully reactivated!",
+
+  "show_ai_confidence": "Show AI confidence",
+  "show_accuracy_percentage": "Display accuracy percentage",
+
+  "automatic_flash": "Automatic flash",
+
+  "language_changed_pt": "Language changed to Portuguese",
+  "language_changed_en": "Language changed to English",
+
+  "logout": "Logout",
+
+  "login_subtitle": "Clear all your doubts about Brazilian snakes.",
+
+  "email": "Email",
+  "password": "Password",
+
+  "login": "LOGIN",
+
+  "create_account": "Don't have an account? Create one"
+
+}

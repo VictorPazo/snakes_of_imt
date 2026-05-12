@@ -1,0 +1,62 @@
+{
+  "camera_capture": "Realize a captura",
+  "tutorial_title": "Modo de uso:",
+  "tutorial_never_show": "Não mostrar novamente",
+  "close": "Fechar",
+
+  "tutorial_text":
+  "1. Capture em local iluminado.\n\n2. Foto nítida.\n\n3. Centralize a serpente.\n\n4. Use galeria se quiser.\n\nMantenha distância segura!",
+
+  "confirm_title": "Deseja:",
+  "confirm_capture": "Confirmar captura",
+  "new_capture": "Realizar nova captura",
+
+  "confirm_new_photo": "Confirmar nova foto",
+  "choose_new_photo": "Escolher nova foto",
+  "identify_snake": "Identificar serpente",
+  "tap_take_photo": "Toque para tirar uma foto",
+
+  "settings": "Configurações",
+  "home": "Início",
+  "history": "Histórico",
+  "camera": "Câmera",
+
+  "welcome": "Bem vindo!",
+
+  "logout": "Sair",
+
+  "account": "Conta",
+  "preferences": "Preferências",
+  "ai": "Inteligência Artificial",
+
+  "language": "Idioma",
+  "about": "Sobre",
+
+  "user": "Usuário",
+  "no_email": "Sem email",
+
+  "enable_notifications": "Ativar notificações",
+  "show_tutorial_again": "Mostrar tutorial novamente",
+
+  "tutorial_reset": "Tutorial reativado com sucesso!",
+
+  "show_ai_confidence": "Mostrar confiança da IA",
+  "show_accuracy_percentage": "Exibir porcentagem de acerto",
+
+  "automatic_flash": "Flash automático",
+
+  "language_changed_pt": "Idioma alterado para Português",
+  "language_changed_en": "Idioma alterado para Inglês",
+
+
+
+  "login_subtitle": "Tire todas suas dúvidas sobre as serpentes brasileiras.",
+
+  "email": "Email",
+  "password": "Senha",
+
+  "login": "LOGIN",
+
+  "create_account": "Não tem conta? Criar uma nova"
+
+}
