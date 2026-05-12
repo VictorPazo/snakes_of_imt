@@ -34,8 +34,25 @@ class AuthService {
       return null;
 
     } catch (e) {
-      return e.toString();
+
+      if (e is AuthException) {
+
+        switch (e.message) {
+
+          case 'User already registered':
+            return 'Este email já está cadastrado';
+
+          case 'Password should be at least 6 characters': // Verificar senhas fortes 
+            return 'A senha deve ter pelo menos 6 caracteres';
+
+          default:
+            return 'Erro ao cadastrar usuário';
+        }
+      }
+
+      return 'Erro inesperado! Será implementado em atualizações futuras';
     }
+    
   }
 
   Future<String?> login({
@@ -50,9 +67,25 @@ class AuthService {
       );
 
       return null;
-
+      
     } catch (e) {
-      return e.toString();
+
+      if (e is AuthException) {
+
+        switch (e.message) {
+
+          case 'Invalid login credentials':
+            return 'Email ou senha inválidos';
+
+          case 'Email not confirmed':
+            return 'Confirme seu email antes de entrar';
+
+          default:
+            return 'Erro de autenticação';
+        }
+      }
+
+      return 'Erro inesperado! Será implementado em atualizações futuras';
     }
   }
 
