@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import 'screens/home.dart';
-import 'screens/login.dart';
+import 'package:snakes_of_imt/screens/screens.dart';
 
 void main() async {
 
@@ -14,7 +13,9 @@ void main() async {
 
   // ☁️ SUPABASE
   await Supabase.initialize(
-    url: 'https://onisczwmchpouqrkxhli.supabase.co',
+
+    url:
+    'https://onisczwmchpouqrkxhli.supabase.co',
 
     anonKey:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXNjendtY2hwb3Vxcmt4aGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMDUzOTcsImV4cCI6MjA5MzY4MTM5N30.XgGudHdIjJiIVOKG4i07UueyO3bA3tKcKdf4zCzzbnM',
@@ -25,13 +26,15 @@ void main() async {
     EasyLocalization(
 
       supportedLocales: const [
+
         Locale('pt', 'BR'),
         Locale('en', 'US'),
       ],
 
       path: 'assets/translations',
 
-      fallbackLocale: const Locale('pt', 'BR'),
+      fallbackLocale:
+      const Locale('pt', 'BR'),
 
       child: const MyApp(),
     ),
@@ -64,17 +67,21 @@ class MyApp extends StatelessWidget {
       context.locale,
 
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF126516),
+
+        colorScheme:
+        ColorScheme.fromSeed(
+
+          seedColor:
+          const Color(0xFF126516),
         ),
 
         useMaterial3: true,
       ),
 
-      // 🔥 LOGIN AUTOMÁTICO
+      // 🔐 LOGIN AUTOMÁTICO
       home: session != null
           ? const HomePage()
-          : LoginPage(),
+          : const LoginPage(),
     );
   }
 }

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'screens.dart';
+import '../services/services.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -13,7 +13,17 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
   final TextEditingController confirmaSenhaController = TextEditingController();
-  final TextEditingController telefoneController = TextEditingController();
+  String? estadoSelecionado;
+  String? cidadeSelecionada;
+
+  final List<String> estados = [
+    'AC','AL','AP','AM','BA','CE','DF','ES',
+    'GO','MA','MT','MS','MG','PA','PB','PR',
+    'PE','PI','RJ','RN','RS','RO','RR','SC',
+    'SP','SE','TO'
+  ];
+
+  List<String> cidades = [];
 
   final Color primaryGreen = const Color(0x99115F15);
 
@@ -51,7 +61,65 @@ class _CadastroPageState extends State<CadastroPage> {
                       buildField("Email", emailController),
                       buildField("Senha", senhaController, isPassword: true),
                       buildField("Confirmar senha", confirmaSenhaController, isPassword: true),
-                      buildField("Telefone", telefoneController),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 15),
+                        child: DropdownButtonFormField<String>(
+                          value: estadoSelecionado,
+                          decoration: InputDecoration(
+                            labelText: 'Estado',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          items: estados.map((estado) {
+                            return DropdownMenuItem(
+                              value: estado,
+                              child: Text(estado),
+                            );
+                          }).toList(),
+                          onChanged: (value) async {
+                            setState(() {
+                              estadoSelecionado = value;
+                              cidadeSelecionada = null;
+                              cidades = [];
+                            });
+
+                            if (value != null) {
+
+                              final ibgeService = IbgeService();
+
+                              final cidadesIBGE = await ibgeService.buscarCidades(value);
+
+                              setState(() {
+                                cidades = cidadesIBGE;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 15),
+                        child: DropdownButtonFormField<String>(
+                          value: cidadeSelecionada,
+                          decoration: InputDecoration(
+                            labelText: 'Cidade',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          items: cidades.map((cidade) {
+                            return DropdownMenuItem(
+                              value: cidade,
+                              child: Text(cidade),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              cidadeSelecionada = value;
+                            });
+                          },
+                        ),
+                      ),
 
                       const SizedBox(height: 20),
 
@@ -76,7 +144,8 @@ class _CadastroPageState extends State<CadastroPage> {
                               nome: nomeController.text,
                               email: emailController.text,
                               senha: senhaController.text,
-                              telefone: telefoneController.text,
+                              estado: estadoSelecionado ?? '',
+                              cidade: cidadeSelecionada ?? '',
                             );
 
                             if (erro == null) {
@@ -97,7 +166,7 @@ class _CadastroPageState extends State<CadastroPage> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF115F15),
+                            backgroundColor: const Color(0xFFFFFFFF),
                             padding: const EdgeInsets.all(15),
                           ),
                           child: const Text("Realizar Cadastro"),
