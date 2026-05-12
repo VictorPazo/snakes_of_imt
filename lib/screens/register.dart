@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'screens.dart';
+import '../services/services.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});

@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'screens/home.dart';
-import 'screens/login.dart';
+import 'package:snakes_of_imt/screens/screens.dart';
 
 void main() async {
 
