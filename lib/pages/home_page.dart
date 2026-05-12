@@ -11,7 +11,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedIndex = 1;
 
-  // 🔥 COR PADRÃO
   final Color primaryGreen = const Color(0x99115F15);
 
   void onItemTapped(int index) {
@@ -30,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryGreen, // ✅ COR APLICADA
+      backgroundColor: primaryGreen,
 
       body: Column(
         children: [
@@ -46,15 +45,15 @@ class _HomePageState extends State<HomePage> {
                 child: ClipOval(
                   child: Image.asset(
                     'assets/logo.png',
-                    width: 70,
-                    height: 70,
+                    width: 90,
+                    height: 90,
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
               const SizedBox(height: 10),
               const Text(
-                "SerPython",
+                "Snakes of IMT",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -66,50 +65,44 @@ class _HomePageState extends State<HomePage> {
 
           const SizedBox(height: 40),
 
-          // 🔥 BLOCO CENTRAL MELHORADO
+          // 🧩 BLOCO FUTURO (MAPA / HISTÓRICO)
           Expanded(
             child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  // 👉 abre câmera direto
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CameraPage(),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 220,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF115F15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.map,
+                      color: Colors.white,
+                      size: 40,
                     ),
-                  );
-                },
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF115F15), // verde sólido
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.camera_alt,
+                    SizedBox(height: 15),
+                    Text(
+                      "Em breve",
+                      style: TextStyle(
                         color: Colors.white,
-                        size: 40,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Identificar serpente",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Mapa e histórico de serpentes encontradas serão implementados aqui 📍",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        "Toque para tirar uma foto",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

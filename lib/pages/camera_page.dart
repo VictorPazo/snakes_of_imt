@@ -40,12 +40,11 @@ class _CameraPageState extends State<CameraPage> {
     setState(() {});
   }
 
-  // 🔥 POPUP INICIAL
   Future<void> showTutorialPopup() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 🔥 DESCOMENTA SE QUISER RESETAR O POPUP PRA TESTE
-    // await prefs.remove('naoMostrarTutorial');
+    // 🔥 RESET TEMPORÁRIO (IMPORTANTE PRA REUNIÃO)
+    await prefs.remove('naoMostrarTutorial');
 
     bool naoMostrar = prefs.getBool('naoMostrarTutorial') ?? false;
     if (naoMostrar) return;
