@@ -22,6 +22,8 @@ class _CameraPageState extends State<CameraPage> {
 
   final ImagePicker _picker = ImagePicker();
 
+  final StorageService storageService = StorageService();
+
   final Color primaryGreen = const Color(0x99115F15);
 
   @override
@@ -252,8 +254,37 @@ class _CameraPageState extends State<CameraPage> {
                     const Color(0xFF115F15),
                   ),
 
-                  onPressed: () {
+                  onPressed: () async {
+
+                    final imageUrl =
+                        await storageService.uploadImage(
+                      File(imagePath),
+                    );
+
                     Navigator.pop(context);
+
+                    if (imageUrl != null) {
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Imagem enviada com sucesso',
+                          ),
+                        ),
+                      );
+
+                      print(imageUrl);
+
+                    } else {
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Erro ao enviar imagem',
+                          ),
+                        ),
+                      );
+                    }
                   },
 
                   child: Text(
