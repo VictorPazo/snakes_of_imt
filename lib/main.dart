@@ -1,17 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-
 import 'package:snakes_of_imt/screens/screens.dart';
 
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🌍 LOCALIZAÇÃO
   await EasyLocalization.ensureInitialized();
 
-  // ☁️ SUPABASE
   await Supabase.initialize(
 
     url:
@@ -56,7 +52,6 @@ class MyApp extends StatelessWidget {
 
       title: 'Snakes of IMT',
 
-      // 🌍 LOCALIZAÇÃO
       localizationsDelegates:
       context.localizationDelegates,
 
@@ -78,7 +73,6 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      // 🔐 LOGIN AUTOMÁTICO
       home: session != null
           ? const HomePage()
           : const LoginPage(),

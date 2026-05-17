@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../services/services.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -48,7 +49,6 @@ class _CameraPageState extends State<CameraPage> {
     setState(() {});
   }
 
-  // 🔥 POPUP TUTORIAL
   Future<void> showTutorialPopup() async {
 
     final prefs = await SharedPreferences.getInstance();
@@ -181,7 +181,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  // 🔥 POPUP CONFIRMAR FOTO
   Future<void> showConfirmDialog(
       String imagePath,
       {
@@ -246,7 +245,6 @@ class _CameraPageState extends State<CameraPage> {
 
                 const SizedBox(height: 20),
 
-                // ✅ CONFIRMAR
                 ElevatedButton(
 
                   style: ElevatedButton.styleFrom(
@@ -272,7 +270,6 @@ class _CameraPageState extends State<CameraPage> {
 
                 const SizedBox(height: 10),
 
-                // 🔄 NOVA FOTO
                 ElevatedButton(
 
                   style: ElevatedButton.styleFrom(
@@ -303,7 +300,6 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
-  // 📸 TIRAR FOTO
   Future<void> takePhoto() async {
 
     if (_controller != null &&
@@ -319,7 +315,6 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
-  // 🖼 PEGAR DA GALERIA
   Future<void> pickFromGallery() async {
 
     final XFile? image =
@@ -355,7 +350,6 @@ class _CameraPageState extends State<CameraPage> {
 
         children: [
 
-          // 📷 CAMERA
           Center(
 
             child: _controller == null ||
@@ -396,7 +390,6 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
-          // 🔝 LOGO + TITULO
           Positioned(
 
             top: 60,
@@ -444,7 +437,6 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
-          // 🔻 BOTÕES
           Positioned(
 
             bottom: 30,
@@ -458,7 +450,6 @@ class _CameraPageState extends State<CameraPage> {
 
               children: [
 
-                // 🖼 GALERIA
                 IconButton(
 
                   icon: const Icon(
@@ -471,7 +462,6 @@ class _CameraPageState extends State<CameraPage> {
                   onPressed: pickFromGallery,
                 ),
 
-                // 📸 CAPTURA
                 GestureDetector(
 
                   onTap: takePhoto,
@@ -504,7 +494,6 @@ class _CameraPageState extends State<CameraPage> {
                   ),
                 ),
 
-                // 🏠 HOME
                 IconButton(
 
                   icon: const Icon(

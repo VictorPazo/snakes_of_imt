@@ -16,7 +16,6 @@ class ConfigurationPage extends StatefulWidget {
 class _ConfigurationPageState
     extends State<ConfigurationPage> {
 
-  // 🔥 USUÁRIO SUPABASE
   final user =
       Supabase.instance.client.auth.currentUser;
 
@@ -33,7 +32,6 @@ class _ConfigurationPageState
     loadSettings();
   }
 
-  // 🔥 CARREGAR CONFIGURAÇÕES
   Future<void> loadSettings() async {
 
     final prefs =
@@ -61,7 +59,6 @@ class _ConfigurationPageState
     });
   }
 
-  // 💾 SALVAR CONFIGURAÇÕES
   Future<void> saveSetting(
       String key,
       bool value,
@@ -73,7 +70,6 @@ class _ConfigurationPageState
     await prefs.setBool(key, value);
   }
 
-  // 🔄 RESETAR TUTORIAL
   Future<void> resetTutorial() async {
 
     final prefs =
@@ -93,7 +89,6 @@ class _ConfigurationPageState
     );
   }
 
-  // 🚪 LOGOUT
   Future<void> logout() async {
 
     await Supabase.instance.client.auth
@@ -149,7 +144,6 @@ class _ConfigurationPageState
 
           children: [
 
-            // 👤 CONTA
             buildSectionTitle(
               "account".tr(),
             ),
@@ -182,7 +176,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 20),
 
-            // ⚙️ PREFERÊNCIAS
             buildSectionTitle(
               "preferences".tr(),
             ),
@@ -240,7 +233,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 20),
 
-            // 🧠 IA
             buildSectionTitle(
               "ai".tr(),
             ),
@@ -286,7 +278,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 20),
 
-            // 📸 CÂMERA
             buildSectionTitle(
               "camera".tr(),
             ),
@@ -326,7 +317,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 20),
 
-            // 🌍 IDIOMA
             buildSectionTitle(
               "language".tr(),
             ),
@@ -418,7 +408,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 20),
 
-            // ℹ️ SOBRE
             buildSectionTitle(
               "about".tr(),
             ),
@@ -446,7 +435,6 @@ class _ConfigurationPageState
 
             const SizedBox(height: 30),
 
-            // 🚪 LOGOUT
             SizedBox(
 
               width: double.infinity,
@@ -489,8 +477,6 @@ class _ConfigurationPageState
       ),
     );
   }
-
-  // 🔥 COMPONENTES REUTILIZÁVEIS
 
   Widget buildSectionTitle(String title) {
 
