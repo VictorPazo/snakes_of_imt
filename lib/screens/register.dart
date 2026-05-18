@@ -13,6 +13,8 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
   final TextEditingController confirmaSenhaController = TextEditingController();
+  bool mostrarSenha = false;
+  bool mostrarConfirmarSenha = false;
   String? estadoSelecionado;
   String? cidadeSelecionada;
 
@@ -59,8 +61,30 @@ class _CadastroPageState extends State<CadastroPage> {
 
                       buildField("Nome", nomeController),
                       buildField("Email", emailController),
-                      buildField("Senha", senhaController, isPassword: true),
-                      buildField("Confirmar senha", confirmaSenhaController, isPassword: true),
+                      buildField(
+                        "Senha",
+                        senhaController,
+                        isPassword: true,
+                        mostrarSenha: mostrarSenha,
+                        onTogglePassword: () {
+                          setState(() {
+                            mostrarSenha = !mostrarSenha;
+                          });
+                        },
+                      ),
+                      buildField(
+                        "Confirmar senha",
+                        confirmaSenhaController,
+                        isPassword: true,
+                        mostrarSenha: mostrarConfirmarSenha,
+                        onTogglePassword: () {
+                          setState(() {
+                            mostrarConfirmarSenha =
+                                !mostrarConfirmarSenha;
+                          });
+                        },
+                      ),
+
                       Padding(
                         padding: const EdgeInsets.only(bottom: 15),
                         child: DropdownButtonFormField<String>(
@@ -192,20 +216,50 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  Widget buildField(String label, TextEditingController controller,
-      {bool isPassword = false}) {
+  Widget buildField(
+    String label,
+    TextEditingController controller, {
+    bool isPassword = false,
+    bool mostrarSenha = false,
+    VoidCallback? onTogglePassword,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
+
       child: TextField(
+
         controller: controller,
-        obscureText: isPassword,
+
+        obscureText:
+            isPassword ? !mostrarSenha : false,
+
+        autocorrect: false,
+
+        enableSuggestions: false,
+
         decoration: InputDecoration(
+
           labelText: label,
+
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+
+          suffixIcon: isPassword
+              ? IconButton(
+
+                  icon: Icon(
+                    mostrarSenha
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                  ),
+
+                  onPressed: onTogglePassword,
+                )
+              : null,
         ),
       ),
     );
   }
+    
 }

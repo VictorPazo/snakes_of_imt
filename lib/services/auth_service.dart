@@ -4,6 +4,14 @@ class AuthService {
 
   final supabase = Supabase.instance.client;
 
+  bool senhaForte(String senha) {
+    final regex = RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+    );
+
+    return regex.hasMatch(senha);
+  }
+
   Future<String?> cadastrarUsuario({
     required String nome,
     required String email,
@@ -13,6 +21,16 @@ class AuthService {
   }) async {
 
     try {
+      if (!senhaForte(senha)) {
+        return
+        'A senha deve conter:\n'
+        '- mínimo 8 caracteres\n'
+        '- letra maiúscula\n'
+        '- letra minúscula\n'
+        '- número\n'
+        '- caractere especial';
+      }
+      
       final AuthResponse response =
           await supabase.auth.signUp(
         email: email,
