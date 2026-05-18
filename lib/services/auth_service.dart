@@ -6,7 +6,7 @@ class AuthService {
 
   bool senhaForte(String senha) {
     final regex = RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$',
     );
 
     return regex.hasMatch(senha);
@@ -61,9 +61,6 @@ class AuthService {
 
           case 'User already registered':
             return 'Este email já está cadastrado';
-
-          case 'Password should be at least 6 characters': // Verificar senhas fortes 
-            return 'A senha deve ter pelo menos 6 caracteres';
 
           default:
             return 'Erro ao cadastrar usuário';

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,9 +36,9 @@ class StorageService {
 
       return imageUrl;
 
-    } catch (e) {
-
-      print('Erro upload imagem: $e');
+    } catch (e, stackTrace) {
+      debugPrint('Erro ao realizar upload da imagem: $e');
+      debugPrint('StackTrace: $stackTrace');
 
       return null;
     }

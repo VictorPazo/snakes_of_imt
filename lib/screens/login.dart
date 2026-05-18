@@ -4,6 +4,7 @@ import 'screens.dart';
 import '../services/services.dart';
 
 class LoginPage extends StatefulWidget {
+
   const LoginPage({super.key});
 
   @override
@@ -16,14 +17,16 @@ class _LoginPageState
 
   final TextEditingController
   emailController =
-  TextEditingController();
+      TextEditingController();
 
   final TextEditingController
   senhaController =
-  TextEditingController();
+      TextEditingController();
 
   final Color primaryGreen =
-  const Color(0x99115F15);
+      const Color(0x99115F15);
+
+  bool visualizarSenha = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,6 @@ class _LoginPageState
 
           const SizedBox(height: 80),
 
-          // 🔝 LOGO
           CircleAvatar(
 
             radius: 40,
@@ -61,7 +63,6 @@ class _LoginPageState
 
           const SizedBox(height: 20),
 
-          // 👋 TITULO
           Text(
 
             "welcome".tr(),
@@ -78,7 +79,6 @@ class _LoginPageState
 
           const SizedBox(height: 10),
 
-          // 📄 SUBTITULO
           Text(
 
             "login_subtitle".tr(),
@@ -92,20 +92,19 @@ class _LoginPageState
 
           const SizedBox(height: 30),
 
-          // 🔲 CARD LOGIN
           Expanded(
 
             child: Container(
 
               padding:
-              const EdgeInsets.all(20),
+                  const EdgeInsets.all(20),
 
               decoration: const BoxDecoration(
 
                 color: Colors.white,
 
                 borderRadius:
-                BorderRadius.vertical(
+                    BorderRadius.vertical(
 
                   top: Radius.circular(25),
                 ),
@@ -115,22 +114,21 @@ class _LoginPageState
 
                 children: [
 
-                  // 📧 EMAIL
                   TextField(
 
                     controller:
-                    emailController,
+                        emailController,
 
                     decoration: InputDecoration(
 
                       labelText:
-                      "email".tr(),
+                          "email".tr(),
 
                       border:
-                      OutlineInputBorder(
+                          OutlineInputBorder(
 
                         borderRadius:
-                        BorderRadius.circular(
+                            BorderRadius.circular(
                           10,
                         ),
                       ),
@@ -139,33 +137,51 @@ class _LoginPageState
 
                   const SizedBox(height: 15),
 
-                  // 🔒 SENHA
                   TextField(
 
                     controller:
-                    senhaController,
+                        senhaController,
 
-                    obscureText: true,
+                    obscureText:
+                        !visualizarSenha,
 
                     decoration: InputDecoration(
 
                       labelText:
-                      "password".tr(),
+                          "password".tr(),
 
                       border:
-                      OutlineInputBorder(
+                          OutlineInputBorder(
 
                         borderRadius:
-                        BorderRadius.circular(
+                            BorderRadius.circular(
                           10,
                         ),
+                      ),
+
+                      suffixIcon: IconButton(
+
+                        icon: Icon(
+
+                          visualizarSenha
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+
+                        onPressed: () {
+
+                          setState(() {
+
+                            visualizarSenha =
+                                !visualizarSenha;
+                          });
+                        },
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // 🔥 BOTÃO LOGIN
                   SizedBox(
 
                     width: double.infinity,
@@ -175,16 +191,16 @@ class _LoginPageState
                       onPressed: () async {
 
                         final authService =
-                        AuthService();
+                            AuthService();
 
                         final erro =
-                        await authService.login(
+                            await authService.login(
 
                           email:
-                          emailController.text,
+                              emailController.text,
 
                           senha:
-                          senhaController.text,
+                              senhaController.text,
                         );
 
                         if (erro == null) {
@@ -196,7 +212,7 @@ class _LoginPageState
                             MaterialPageRoute(
 
                               builder: (_) =>
-                              const HomePage(),
+                                  const HomePage(),
                             ),
                           );
 
@@ -213,13 +229,13 @@ class _LoginPageState
                       },
 
                       style:
-                      ElevatedButton.styleFrom(
+                          ElevatedButton.styleFrom(
 
                         backgroundColor:
-                        const Color(0xFF115F15),
+                            const Color(0xFF115F15),
 
                         padding:
-                        const EdgeInsets.all(15),
+                            const EdgeInsets.all(15),
                       ),
 
                       child: Text(
@@ -231,7 +247,7 @@ class _LoginPageState
                           color: Colors.white,
 
                           fontWeight:
-                          FontWeight.bold,
+                              FontWeight.bold,
                         ),
                       ),
                     ),
@@ -239,7 +255,6 @@ class _LoginPageState
 
                   const SizedBox(height: 15),
 
-                  // 🆕 CRIAR CONTA
                   GestureDetector(
 
                     onTap: () {
@@ -251,7 +266,7 @@ class _LoginPageState
                         MaterialPageRoute(
 
                           builder: (_) =>
-                          const CadastroPage(),
+                              const CadastroPage(),
                         ),
                       );
                     },
@@ -263,10 +278,10 @@ class _LoginPageState
                       style: const TextStyle(
 
                         color:
-                        Color(0xFF115F15),
+                            Color(0xFF115F15),
 
                         fontWeight:
-                        FontWeight.w500,
+                            FontWeight.w500,
                       ),
                     ),
                   ),

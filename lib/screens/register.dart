@@ -161,6 +161,17 @@ class _CadastroPageState extends State<CadastroPage> {
 
                               return;
                             }
+                            
+                            if (estadoSelecionado != null && cidadeSelecionada == null) {
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Selecione uma cidade'),
+                                ),
+                              );
+
+                              return;
+                            }
 
                             final authService = AuthService();
 
