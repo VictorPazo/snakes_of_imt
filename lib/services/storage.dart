@@ -3,11 +3,15 @@ import 'package:flutter/foundation.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/upload_result.dart';
+
 class StorageService {
 
   final supabase = Supabase.instance.client;
 
-  Future<String?> uploadImage(File imageFile) async {
+  Future<UploadResult?> uploadImage(
+      File imageFile,
+      ) async {
 
     try {
 
@@ -24,21 +28,33 @@ class StorageService {
           '${user.id}/$fileName';
 
       await supabase.storage
-          .from('snake-images')
+          .from('user-history')
           .upload(
-            filePath,
-            imageFile,
-          );
+        filePath,
+        imageFile,
+      );
 
-      final imageUrl = supabase.storage
-          .from('snake-images')
-          .getPublicUrl(filePath);
+      final imageUrl = await supabase.storage
+          .from('user-history')
+          .createSignedUrl(
+        filePath,
+        3600,
+      );
 
-      return imageUrl;
+      return UploadResult(
+        filePath: filePath,
+        signedUrl: imageUrl,
+      );
 
     } catch (e, stackTrace) {
-      debugPrint('Erro ao realizar upload da imagem: $e');
-      debugPrint('StackTrace: $stackTrace');
+
+      debugPrint(
+          'Erro ao realizar upload da imagem: $e'
+      );
+
+      debugPrint(
+          'StackTrace: $stackTrace'
+      );
 
       return null;
     }
