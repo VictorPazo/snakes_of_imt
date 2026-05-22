@@ -5,4 +5,4 @@ export 'history.dart';
 export 'home.dart';
 export 'login.dart';
 export 'register.dart';
-export 'snake_information_page.dart';
+export 'snake_information.dart';
