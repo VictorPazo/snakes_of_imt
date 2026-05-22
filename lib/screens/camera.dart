@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../services/services.dart';
+import '../screens/screens.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -23,6 +24,10 @@ class _CameraPageState extends State<CameraPage> {
   final ImagePicker _picker = ImagePicker();
 
   final StorageService storageService = StorageService();
+
+  final IAService iaService = IAService();
+
+  final SnakeInformationService snakeInformationService = SnakeInformationService();
 
   final Color primaryGreen = const Color(0x99115F15);
 
@@ -256,26 +261,14 @@ class _CameraPageState extends State<CameraPage> {
 
                   onPressed: () async {
 
-                    final imageUrl =
+                    final uploadResult =
                         await storageService.uploadImage(
                       File(imagePath),
                     );
 
                     Navigator.pop(context);
 
-                    if (imageUrl != null) {
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Imagem enviada com sucesso',
-                          ),
-                        ),
-                      );
-
-                      print(imageUrl);
-
-                    } else {
+                    if (uploadResult == null) {
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -284,7 +277,58 @@ class _CameraPageState extends State<CameraPage> {
                           ),
                         ),
                       );
+
+                      return;
                     }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Imagem enviada com sucesso',
+                        ),
+                      ),
+                    );
+
+                    final prediction =
+                        await iaService.predictSnake(
+                      File(imagePath),
+                    );
+
+                    if (prediction == null) {
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Erro na identificação da IA',
+                          ),
+                        ),
+                      );
+
+                      return;
+                    }
+
+                    final snakeId = prediction['snake_id'];
+
+                    final confidence = prediction['confidence'];
+
+                    final snake = await snakeInformationService.getSnakeById(snakeId);
+
+                    if (snake == null) {
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Erro ao buscar cobra')
+                        ),
+                      );
+
+                      return;
+                    }
+
+                    print('=== COBRA IDENTIFICADA ===');
+
+                    print(snake.specie);
+
+                    print('Confiança: $confidence');
                   },
 
                   child: Text(
