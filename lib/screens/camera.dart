@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,7 +199,7 @@ class _CameraPageState extends State<CameraPage> {
 
       barrierDismissible: false,
 
-      builder: (context) {
+      builder: (dialogContext) {
 
         return Dialog(
 
@@ -261,12 +260,17 @@ class _CameraPageState extends State<CameraPage> {
 
                   onPressed: () async {
 
+                    final dialogNavigator =
+                        Navigator.of(dialogContext);
+
                     final uploadResult =
                         await storageService.uploadImage(
                       File(imagePath),
                     );
 
-                    Navigator.pop(context);
+                    dialogNavigator.pop();
+
+                    if (!mounted) return;
 
                     if (uploadResult == null) {
 
@@ -294,6 +298,8 @@ class _CameraPageState extends State<CameraPage> {
                       File(imagePath),
                     );
 
+                    if (!mounted) return;
+
                     if (prediction == null) {
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,6 +319,8 @@ class _CameraPageState extends State<CameraPage> {
 
                     final snake = await snakeInformationService.getSnakeById(snakeId);
 
+                    if (!mounted) return;
+
                     if (snake == null) {
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -324,11 +332,19 @@ class _CameraPageState extends State<CameraPage> {
                       return;
                     }
 
-                    print('=== COBRA IDENTIFICADA ===');
+                    Navigator.push(context,
 
-                    print(snake.specie);
+                      MaterialPageRoute(
 
-                    print('Confiança: $confidence');
+                        builder: (_) => SnakeInformationScreen(
+
+                          snake: snake,
+
+                          confidence:
+                          (confidence as num).toDouble(),
+                        ),
+                      ),
+                    );
                   },
 
                   child: Text(
@@ -353,7 +369,7 @@ class _CameraPageState extends State<CameraPage> {
                   ),
 
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
                   },
 
                   child: Text(

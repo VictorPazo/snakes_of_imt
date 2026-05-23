@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class IAService {
 
+  //colocar ip da máquina local
   final String baseUrl =
-      'http://10.2.131.255:8000';
+      'http://192.168.0.6:8000';
 
   Future<Map<String, dynamic>?> predictSnake(
       File imageFile,
@@ -27,20 +29,27 @@ class IAService {
         ),
       );
 
-      final response =
-      await request.send();
+      final response = await request
+          .send()
+          .timeout(const Duration(seconds: 30));
+
+      final responseBody =
+          await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-
-        final responseBody =
-        await response.stream.bytesToString();
-
         return jsonDecode(responseBody);
       }
 
+      debugPrint(
+        'predictSnake HTTP ${response.statusCode}: $responseBody',
+      );
+
       return null;
 
-    } catch (e) {
+    } catch (e, stackTrace) {
+
+      debugPrint('predictSnake erro: $e');
+      debugPrint('StackTrace: $stackTrace');
 
       return null;
     }
