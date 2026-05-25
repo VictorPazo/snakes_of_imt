@@ -56,6 +56,41 @@
 
   "login": "LOGIN",
 
-  "create_account": "Don't have an account? Create one"
+  "create_account": "Don't have an account? Create one",
+
+  "no_history": "No identifications found",
+
+  "poisonous": "Poisonous",
+  "non_poisonous": "Non poisonous",
+
+  "confidence": "Confidence",
+  "date": "Date",
+
+  "snake_identified": "Snake identified",
+
+  "family": "Family",
+  "genus": "Genus",
+  "venom_type": "Venom type",
+  "dangerousness": "Dangerousness",
+  "antivenom": "Antivenom",
+
+  "description": "Description",
+
+  "yes": "Yes",
+  "no": "No",
+
+  "not_informed": "Not informed",
+  "no_description": "No description",
+
+  "forgot_password": "Forgot password?",
+  "reset_password": "Reset password",
+  "cancel": "Cancel",
+  "send": "Send",
+  "reset_email_sent": "Reset email sent!",
+  "delete_history": "Delete history",
+  "delete_history_text": "Do you want to remove this identification?",
+  "delete": "Delete",
+  "history_deleted": "History removed",
+  "you_are_here": "You are here"
 
 }

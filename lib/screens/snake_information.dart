@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/snake_model.dart';
+import 'history.dart';
 
-class SnakeInformationScreen extends StatelessWidget {
+class SnakeInformationScreen
+    extends StatelessWidget {
 
   final SnakeModel snake;
 
   final double confidence;
+
+  final String imageUrl;
 
   const SnakeInformationScreen({
 
@@ -15,30 +20,57 @@ class SnakeInformationScreen extends StatelessWidget {
     required this.snake,
 
     required this.confidence,
+
+    required this.imageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
 
-    const String supabaseUrl =
-        'https://onisczwmchpouqrkxhli.supabase.co';
+    final image =
+    Supabase.instance.client.storage
 
-    final snakeImageUrl =
-        '$supabaseUrl/storage/v1/object/public/'
-        'snake-species/${snake.imageName}';
+        .from('user-history')
+
+        .getPublicUrl(imageUrl);
 
     return Scaffold(
 
-      backgroundColor: const Color(0xFF115F15),
+      backgroundColor:
+      const Color(0xFF115F15),
 
       appBar: AppBar(
 
-        backgroundColor: const Color(0xFF115F15),
+        backgroundColor:
+        const Color(0xFF115F15),
 
         elevation: 0,
 
+        leading: IconButton(
+
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+
+          onPressed: () {
+
+            Navigator.pushReplacement(
+
+              context,
+
+              MaterialPageRoute(
+                builder: (_) =>
+                const HistoryPage(),
+              ),
+            );
+          },
+        ),
+
         title: const Text(
-          'Snake Identified',
+
+          'Serpente identificada',
+
           style: TextStyle(
             color: Colors.white,
           ),
@@ -51,9 +83,6 @@ class SnakeInformationScreen extends StatelessWidget {
 
         child: Column(
 
-          crossAxisAlignment:
-          CrossAxisAlignment.center,
-
           children: [
 
             ClipRRect(
@@ -63,7 +92,7 @@ class SnakeInformationScreen extends StatelessWidget {
 
               child: Image.network(
 
-                snakeImageUrl,
+                image,
 
                 height: 250,
 
@@ -91,25 +120,12 @@ class SnakeInformationScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 10),
-
-            Text(
-
-              'Confidence: ${confidence.toStringAsFixed(1)}%',
-
-              style: const TextStyle(
-
-                color: Colors.white70,
-
-                fontSize: 18,
-              ),
-            ),
-
             const SizedBox(height: 25),
 
             Container(
 
-              padding: const EdgeInsets.all(20),
+              padding:
+              const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
 
@@ -127,50 +143,51 @@ class SnakeInformationScreen extends StatelessWidget {
                 children: [
 
                   infoRow(
-                    'Family',
+                    'Família',
                     snake.family,
                   ),
 
                   infoRow(
-                    'Genus',
+                    'Gênero',
                     snake.genus,
                   ),
 
                   infoRow(
-                    'Poisonous',
+                    'Venenosa',
                     snake.poisonous
-                        ? 'Yes'
-                        : 'No',
+                        ? 'Sim'
+                        : 'Não',
                   ),
 
                   infoRow(
-                    'Dangerousness',
+                    'Periculosidade',
                     snake.dangerousness
                         .toString(),
                   ),
 
                   infoRow(
-                    'Venom Type',
+                    'Tipo de veneno',
                     snake.venomType,
                   ),
 
                   infoRow(
-                    'Antivenom',
+                    'Antiveneno',
                     snake.effectiveAntivenom
-                        ?? 'Not informed',
+                        ?? 'Não informado',
                   ),
 
                   const SizedBox(height: 20),
 
                   const Text(
 
-                    'Description',
+                    'Descrição',
 
                     style: TextStyle(
 
                       fontSize: 20,
 
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
 
@@ -179,7 +196,7 @@ class SnakeInformationScreen extends StatelessWidget {
                   Text(
 
                     snake.description
-                        ?? 'No description',
+                        ?? 'Sem descrição',
 
                     style: const TextStyle(
                       fontSize: 16,
@@ -205,9 +222,6 @@ class SnakeInformationScreen extends StatelessWidget {
       const EdgeInsets.only(bottom: 12),
 
       child: Row(
-
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
 
         children: [
 

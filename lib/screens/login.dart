@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens.dart';
 import '../services/services.dart';
@@ -17,16 +19,121 @@ class _LoginPageState
 
   final TextEditingController
   emailController =
-      TextEditingController();
+  TextEditingController();
 
   final TextEditingController
   senhaController =
-      TextEditingController();
+  TextEditingController();
 
   final Color primaryGreen =
-      const Color(0x99115F15);
+  const Color(0x99115F15);
 
   bool visualizarSenha = false;
+
+  // 🔥 RESETAR SENHA
+  Future<void> showResetPasswordDialog() async {
+
+    final TextEditingController
+    resetEmailController =
+    TextEditingController();
+
+    showDialog(
+
+      context: context,
+
+      builder: (context) {
+
+        return AlertDialog(
+
+          title: Text(
+            "reset_password".tr(),
+          ),
+
+          content: TextField(
+
+            controller:
+            resetEmailController,
+
+            decoration: InputDecoration(
+              labelText: "email".tr(),
+            ),
+          ),
+
+          actions: [
+
+            TextButton(
+
+              onPressed: () {
+                Navigator.pop(context);
+              },
+
+              child: Text(
+                "cancel".tr(),
+              ),
+            ),
+
+            ElevatedButton(
+
+              style:
+              ElevatedButton.styleFrom(
+                backgroundColor:
+                const Color(0xFF115F15),
+              ),
+
+              onPressed: () async {
+
+                try {
+
+                  await Supabase.instance.client.auth
+                      .resetPasswordForEmail(
+
+                    resetEmailController.text,
+
+                    redirectTo:
+                    'snakesofimt://reset-password',
+                  );
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(
+
+                    SnackBar(
+
+                      content: Text(
+                        "reset_email_sent".tr(),
+                      ),
+                    ),
+                  );
+
+                } catch (e) {
+
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(
+
+                    SnackBar(
+                      content: Text(
+                        e.toString(),
+                      ),
+                    ),
+                  );
+                }
+              },
+
+              child: Text(
+
+                "send".tr(),
+
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +148,7 @@ class _LoginPageState
 
           const SizedBox(height: 80),
 
+          // 🔝 LOGO
           CircleAvatar(
 
             radius: 40,
@@ -63,6 +171,7 @@ class _LoginPageState
 
           const SizedBox(height: 20),
 
+          // 👋 TITULO
           Text(
 
             "welcome".tr(),
@@ -79,6 +188,7 @@ class _LoginPageState
 
           const SizedBox(height: 10),
 
+          // 📄 SUBTITULO
           Text(
 
             "login_subtitle".tr(),
@@ -92,19 +202,20 @@ class _LoginPageState
 
           const SizedBox(height: 30),
 
+          // 🔲 CARD LOGIN
           Expanded(
 
             child: Container(
 
               padding:
-                  const EdgeInsets.all(20),
+              const EdgeInsets.all(20),
 
               decoration: const BoxDecoration(
 
                 color: Colors.white,
 
                 borderRadius:
-                    BorderRadius.vertical(
+                BorderRadius.vertical(
 
                   top: Radius.circular(25),
                 ),
@@ -114,21 +225,22 @@ class _LoginPageState
 
                 children: [
 
+                  // 📧 EMAIL
                   TextField(
 
                     controller:
-                        emailController,
+                    emailController,
 
                     decoration: InputDecoration(
 
                       labelText:
-                          "email".tr(),
+                      "email".tr(),
 
                       border:
-                          OutlineInputBorder(
+                      OutlineInputBorder(
 
                         borderRadius:
-                            BorderRadius.circular(
+                        BorderRadius.circular(
                           10,
                         ),
                       ),
@@ -137,24 +249,25 @@ class _LoginPageState
 
                   const SizedBox(height: 15),
 
+                  // 🔒 SENHA
                   TextField(
 
                     controller:
-                        senhaController,
+                    senhaController,
 
                     obscureText:
-                        !visualizarSenha,
+                    !visualizarSenha,
 
                     decoration: InputDecoration(
 
                       labelText:
-                          "password".tr(),
+                      "password".tr(),
 
                       border:
-                          OutlineInputBorder(
+                      OutlineInputBorder(
 
                         borderRadius:
-                            BorderRadius.circular(
+                        BorderRadius.circular(
                           10,
                         ),
                       ),
@@ -173,15 +286,41 @@ class _LoginPageState
                           setState(() {
 
                             visualizarSenha =
-                                !visualizarSenha;
+                            !visualizarSenha;
                           });
                         },
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  // 🔥 ESQUECEU SENHA
+                  Align(
 
+                    alignment:
+                    Alignment.centerRight,
+
+                    child: TextButton(
+
+                      onPressed: () {
+
+                        showResetPasswordDialog();
+                      },
+
+                      child: Text(
+
+                        "forgot_password".tr(),
+
+                        style: const TextStyle(
+                          color:
+                          Color(0xFF115F15),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // 🔥 LOGIN
                   SizedBox(
 
                     width: double.infinity,
@@ -191,16 +330,16 @@ class _LoginPageState
                       onPressed: () async {
 
                         final authService =
-                            AuthService();
+                        AuthService();
 
                         final erro =
-                            await authService.login(
+                        await authService.login(
 
                           email:
-                              emailController.text,
+                          emailController.text,
 
                           senha:
-                              senhaController.text,
+                          senhaController.text,
                         );
 
                         if (erro == null) {
@@ -212,7 +351,7 @@ class _LoginPageState
                             MaterialPageRoute(
 
                               builder: (_) =>
-                                  const HomePage(),
+                              const HomePage(),
                             ),
                           );
 
@@ -229,13 +368,13 @@ class _LoginPageState
                       },
 
                       style:
-                          ElevatedButton.styleFrom(
+                      ElevatedButton.styleFrom(
 
                         backgroundColor:
-                            const Color(0xFF115F15),
+                        const Color(0xFF115F15),
 
                         padding:
-                            const EdgeInsets.all(15),
+                        const EdgeInsets.all(15),
                       ),
 
                       child: Text(
@@ -247,7 +386,7 @@ class _LoginPageState
                           color: Colors.white,
 
                           fontWeight:
-                              FontWeight.bold,
+                          FontWeight.bold,
                         ),
                       ),
                     ),
@@ -255,6 +394,7 @@ class _LoginPageState
 
                   const SizedBox(height: 15),
 
+                  // 🆕 CRIAR CONTA
                   GestureDetector(
 
                     onTap: () {
@@ -266,7 +406,7 @@ class _LoginPageState
                         MaterialPageRoute(
 
                           builder: (_) =>
-                              const CadastroPage(),
+                          const CadastroPage(),
                         ),
                       );
                     },
@@ -278,10 +418,10 @@ class _LoginPageState
                       style: const TextStyle(
 
                         color:
-                            Color(0xFF115F15),
+                        Color(0xFF115F15),
 
                         fontWeight:
-                            FontWeight.w500,
+                        FontWeight.w500,
                       ),
                     ),
                   ),

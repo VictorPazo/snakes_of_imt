@@ -1,15 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.snakes_of_imt">
 
-    <!-- PERMISSÕES -->
+    <!-- 🌐 INTERNET -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 📸 CAMERA -->
     <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- 🖼️ GALERIA -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!-- 📍 LOCALIZAÇÃO -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:label="snakes_of_imt"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+
+        <!-- 🔥 GOOGLE MAPS API -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDEE-y5Ww5E3AomApEePT01QB-5l4JBCRU"/>
 
         <activity
             android:name=".MainActivity"

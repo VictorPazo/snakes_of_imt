@@ -1,4 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens.dart';
 
@@ -6,23 +10,198 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() =>
-      _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState
-    extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
 
   int selectedIndex = 1;
 
   final Color primaryGreen =
   const Color(0x99115F15);
 
+  GoogleMapController? mapController;
+
+  LatLng currentPosition =
+  const LatLng(-23.55052, -46.633308);
+
+  Set<Marker> markers = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    loadMap();
+  }
+
+  // 🔥 CARREGA TUDO
+  Future<void> loadMap() async {
+
+    await getUserLocation();
+
+    await loadSnakeMarkers();
+
+    if (mapController != null) {
+
+      await mapController!.animateCamera(
+
+        CameraUpdate.newLatLngZoom(
+          currentPosition,
+          16,
+        ),
+      );
+    }
+
+    setState(() {});
+  }
+
+  // 📍 LOCALIZAÇÃO
+  Future<void> getUserLocation() async {
+
+    bool serviceEnabled;
+
+    LocationPermission permission;
+
+    serviceEnabled =
+    await Geolocator
+        .isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      return;
+    }
+
+    permission =
+    await Geolocator.checkPermission();
+
+    if (permission ==
+        LocationPermission.denied) {
+
+      permission =
+      await Geolocator.requestPermission();
+
+      if (permission ==
+          LocationPermission.denied) {
+        return;
+      }
+    }
+
+    if (permission ==
+        LocationPermission.deniedForever) {
+      return;
+    }
+
+    Position position =
+    await Geolocator
+        .getCurrentPosition();
+
+    currentPosition = LatLng(
+      position.latitude,
+      position.longitude,
+    );
+  }
+
+  // 🐍 CARREGAR MARKERS
+  Future<void> loadSnakeMarkers() async {
+
+    try {
+
+      final response =
+      await Supabase.instance.client
+
+          .from('snake_historic')
+
+          .select('''
+          *,
+          snakes(*)
+        ''');
+
+      Set<Marker> loadedMarkers = {};
+
+      // 📍 USUÁRIO
+      loadedMarkers.add(
+
+        Marker(
+
+          markerId:
+          const MarkerId("usuario"),
+
+          position: currentPosition,
+
+          infoWindow: InfoWindow(
+            title: "Você está aqui",
+          ),
+        ),
+      );
+
+      // 🐍 COBRAS
+      for (var item in response) {
+
+        if (item['latitude'] == null ||
+            item['longitude'] == null) {
+          continue;
+        }
+
+        final snake = item['snakes'];
+
+        loadedMarkers.add(
+
+          Marker(
+
+            markerId:
+            MarkerId(
+              "snake_${item['id']}",
+            ),
+
+            position: LatLng(
+
+              double.parse(
+                item['latitude'].toString(),
+              ),
+
+              double.parse(
+                item['longitude'].toString(),
+              ),
+            ),
+
+            icon:
+            BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueRed,
+            ),
+
+            infoWindow: InfoWindow(
+
+              title:
+              snake['specie'],
+
+              snippet:
+              snake['poisonous'] == true
+
+                  ? "Venenosa"
+                  : "Não venenosa",
+            ),
+          ),
+        );
+      }
+
+      setState(() {
+
+        markers = loadedMarkers;
+      });
+
+    } catch (e) {
+
+      debugPrint(
+        "Erro markers: $e",
+      );
+    }
+  }
+
+  // 🔻 NAVBAR
   void onItemTapped(int index) {
 
     switch (index) {
 
-    // ⚙️ CONFIGURAÇÕES
+    // ⚙️ CONFIG
       case 0:
 
         Navigator.push(
@@ -37,6 +216,24 @@ class _HomePageState
 
         break;
 
+    // 📜 HISTÓRICO
+      case 2:
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+            builder: (_) =>
+            const HistoryPage(),
+          ),
+        ).then((_) {
+
+          loadMap();
+        });
+
+        break;
+
     // 📸 CAMERA
       case 3:
 
@@ -45,10 +242,13 @@ class _HomePageState
           context,
 
           MaterialPageRoute(
-            builder: (context) =>
+            builder: (_) =>
             const CameraPage(),
           ),
-        );
+        ).then((_) {
+
+          loadMap();
+        });
 
         break;
     }
@@ -67,7 +267,7 @@ class _HomePageState
 
           const SizedBox(height: 80),
 
-          // 🔝 LOGO + NOME
+          // 🔝 LOGO
           Column(
 
             children: [
@@ -110,97 +310,138 @@ class _HomePageState
             ],
           ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 20),
 
-          // 🐍 CARD CENTRAL
+          // 🗺️ MAPA
           Expanded(
 
-            child: Center(
+            child: Padding(
 
-              child: GestureDetector(
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
 
-                onTap: () {
+              child: ClipRRect(
 
-                  Navigator.push(
+                borderRadius:
+                BorderRadius.circular(20),
 
-                    context,
+                child: GoogleMap(
 
-                    MaterialPageRoute(
-                      builder: (_) =>
-                      const CameraPage(),
-                    ),
-                  );
-                },
+                  initialCameraPosition:
 
-                child: Container(
+                  CameraPosition(
 
-                  width:
-                  MediaQuery.of(context)
-                      .size
-                      .width * 0.8,
+                    target:
+                    currentPosition,
 
-                  height: 200,
-
-                  decoration: BoxDecoration(
-
-                    color:
-                    const Color(0xFF115F15),
-
-                    borderRadius:
-                    BorderRadius.circular(20),
+                    zoom: 17,
                   ),
 
-                  child: Column(
+                  myLocationEnabled: true,
 
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
+                  myLocationButtonEnabled: true,
 
-                    children: [
+                  zoomControlsEnabled: false,
 
-                      const Icon(
+                  markers: markers,
 
-                        Icons.camera_alt,
+                  onMapCreated: (controller) {
 
-                        color: Colors.white,
-
-                        size: 40,
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Text(
-
-                        "identify_snake".tr(),
-
-                        style: const TextStyle(
-
-                          color: Colors.white,
-
-                          fontSize: 18,
-
-                          fontWeight:
-                          FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 5),
-
-                      Text(
-
-                        "tap_take_photo".tr(),
-
-                        style: const TextStyle(
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
+                    mapController = controller;
+                  },
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
+
+          // 📸 BOTÃO CAMERA
+          Padding(
+
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal: 20,
+            ),
+
+            child: GestureDetector(
+
+              onTap: () {
+
+                Navigator.push(
+
+                  context,
+
+                  MaterialPageRoute(
+                    builder: (_) =>
+                    const CameraPage(),
+                  ),
+                ).then((_) {
+
+                  loadMap();
+                });
+              },
+
+              child: Container(
+
+                width: double.infinity,
+
+                height: 90,
+
+                decoration: BoxDecoration(
+
+                  color:
+                  const Color(0xFF115F15),
+
+                  borderRadius:
+                  BorderRadius.circular(
+                    20,
+                  ),
+                ),
+
+                child: Row(
+
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
+
+                  children: [
+
+                    const Icon(
+
+                      Icons.camera_alt,
+
+                      color: Colors.white,
+
+                      size: 35,
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Text(
+
+                      "identify_snake".tr(),
+
+                      style:
+                      const TextStyle(
+
+                        color:
+                        Colors.white,
+
+                        fontSize: 20,
+
+                        fontWeight:
+                        FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
         ],
       ),
 

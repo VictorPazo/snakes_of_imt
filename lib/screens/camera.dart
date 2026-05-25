@@ -1,9 +1,13 @@
 import 'dart:io';
-
+import '../services/upload_service.dart';
+import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../services/services.dart';
 import '../screens/screens.dart';
 
@@ -11,24 +15,32 @@ class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
 
   @override
-  State<CameraPage> createState() => _CameraPageState();
+  State<CameraPage> createState() =>
+      _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage> {
+class _CameraPageState
+    extends State<CameraPage> {
 
   CameraController? _controller;
 
   late List<CameraDescription> cameras;
 
-  final ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker =
+  ImagePicker();
 
-  final StorageService storageService = StorageService();
+  final UploadService uploadService =
+  UploadService();
 
-  final IAService iaService = IAService();
+  final IAService iaService =
+  IAService();
 
-  final SnakeInformationService snakeInformationService = SnakeInformationService();
+  final SnakeInformationService
+  snakeInformationService =
+  SnakeInformationService();
 
-  final Color primaryGreen = const Color(0x99115F15);
+  final Color primaryGreen =
+  const Color(0x99115F15);
 
   @override
   void initState() {
@@ -36,11 +48,14 @@ class _CameraPageState extends State<CameraPage> {
 
     initCamera();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
+
       showTutorialPopup();
     });
   }
 
+  // 📸 CAMERA
   Future<void> initCamera() async {
 
     cameras = await availableCameras();
@@ -55,18 +70,24 @@ class _CameraPageState extends State<CameraPage> {
     setState(() {});
   }
 
+  // 📚 TUTORIAL
   Future<void> showTutorialPopup() async {
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs =
+    await SharedPreferences.getInstance();
 
     bool naoMostrar =
-        prefs.getBool('naoMostrarTutorial') ?? false;
+        prefs.getBool(
+          'naoMostrarTutorial',
+        ) ??
+            false;
 
     if (naoMostrar) return;
 
     bool checkValue = false;
 
     showDialog(
+
       context: context,
 
       barrierDismissible: false,
@@ -75,73 +96,108 @@ class _CameraPageState extends State<CameraPage> {
 
         return StatefulBuilder(
 
-          builder: (context, setState) {
+          builder: (
+              context,
+              setState,
+              ) {
 
             return Dialog(
 
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius:
+                BorderRadius.circular(
+                  20,
+                ),
               ),
 
               child: Container(
 
-                padding: const EdgeInsets.all(20),
+                padding:
+                const EdgeInsets.all(20),
 
                 decoration: BoxDecoration(
+
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+
+                  borderRadius:
+                  BorderRadius.circular(
+                    20,
+                  ),
                 ),
 
                 child: Column(
 
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize:
+                  MainAxisSize.min,
 
                   children: [
 
                     Text(
+
                       "tutorial_title".tr(),
 
-                      style: const TextStyle(
+                      style:
+                      const TextStyle(
+
                         fontSize: 22,
-                        fontWeight: FontWeight.bold,
+
+                        fontWeight:
+                        FontWeight.bold,
+
                         color: Colors.black,
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(
+                      height: 15,
+                    ),
 
                     Text(
+
                       "tutorial_text".tr(),
 
-                      textAlign: TextAlign.center,
+                      textAlign:
+                      TextAlign.center,
 
-                      style: const TextStyle(
+                      style:
+                      const TextStyle(
                         color: Colors.black87,
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(
+                      height: 15,
+                    ),
 
                     Row(
+
                       children: [
 
                         Checkbox(
 
                           value: checkValue,
 
-                          onChanged: (value) {
+                          onChanged: (
+                              value,
+                              ) {
 
                             setState(() {
-                              checkValue = value!;
+
+                              checkValue =
+                              value!;
                             });
                           },
                         ),
 
                         Expanded(
-                          child: Text(
-                            "tutorial_never_show".tr(),
 
-                            style: const TextStyle(
+                          child: Text(
+
+                            "tutorial_never_show"
+                                .tr(),
+
+                            style:
+                            const TextStyle(
                               color: Colors.black,
                             ),
                           ),
@@ -151,9 +207,13 @@ class _CameraPageState extends State<CameraPage> {
 
                     ElevatedButton(
 
-                      style: ElevatedButton.styleFrom(
+                      style:
+                      ElevatedButton.styleFrom(
+
                         backgroundColor:
-                        const Color(0xFF115F15),
+                        const Color(
+                          0xFF115F15,
+                        ),
                       ),
 
                       onPressed: () async {
@@ -161,18 +221,24 @@ class _CameraPageState extends State<CameraPage> {
                         if (checkValue) {
 
                           await prefs.setBool(
+
                             'naoMostrarTutorial',
+
                             true,
                           );
                         }
 
-                        Navigator.pop(context);
+                        Navigator.pop(
+                          context,
+                        );
                       },
 
                       child: Text(
+
                         "close".tr(),
 
-                        style: const TextStyle(
+                        style:
+                        const TextStyle(
                           color: Colors.white,
                         ),
                       ),
@@ -187,9 +253,10 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  // 📸 CONFIRMAR FOTO
   Future<void> showConfirmDialog(
-      String imagePath,
-      {
+      String imagePath, {
+
         required bool isFromGallery,
       }) async {
 
@@ -204,35 +271,49 @@ class _CameraPageState extends State<CameraPage> {
         return Dialog(
 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius:
+            BorderRadius.circular(20),
           ),
 
           child: Container(
 
-            padding: const EdgeInsets.all(20),
+            padding:
+            const EdgeInsets.all(20),
 
             decoration: BoxDecoration(
+
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+
+              borderRadius:
+              BorderRadius.circular(20),
             ),
 
             child: Column(
 
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+              MainAxisSize.min,
 
               children: [
 
                 Text(
+
                   "confirm_title".tr(),
 
-                  style: const TextStyle(
+                  style:
+                  const TextStyle(
+
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
+
+                    fontWeight:
+                    FontWeight.bold,
+
                     color: Colors.black,
                   ),
                 ),
 
-                const SizedBox(height: 15),
+                const SizedBox(
+                  height: 15,
+                ),
 
                 ClipRRect(
 
@@ -249,22 +330,34 @@ class _CameraPageState extends State<CameraPage> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 20,
+                ),
 
+                // 🔥 CONFIRMAR
                 ElevatedButton(
 
-                  style: ElevatedButton.styleFrom(
+                  style:
+                  ElevatedButton.styleFrom(
+
                     backgroundColor:
-                    const Color(0xFF115F15),
+                    const Color(
+                      0xFF115F15,
+                    ),
                   ),
 
                   onPressed: () async {
 
                     final dialogNavigator =
-                        Navigator.of(dialogContext);
+                    Navigator.of(
+                      dialogContext,
+                    );
 
+                    // 🔥 UPLOAD
                     final uploadResult =
-                        await storageService.uploadImage(
+
+                    await uploadService
+                        .uploadImage(
                       File(imagePath),
                     );
 
@@ -274,8 +367,12 @@ class _CameraPageState extends State<CameraPage> {
 
                     if (uploadResult == null) {
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+
                         const SnackBar(
+
                           content: Text(
                             'Erro ao enviar imagem',
                           ),
@@ -285,16 +382,11 @@ class _CameraPageState extends State<CameraPage> {
                       return;
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Imagem enviada com sucesso',
-                        ),
-                      ),
-                    );
-
+                    // 🔥 IA
                     final prediction =
-                        await iaService.predictSnake(
+
+                    await iaService
+                        .predictSnake(
                       File(imagePath),
                     );
 
@@ -302,8 +394,12 @@ class _CameraPageState extends State<CameraPage> {
 
                     if (prediction == null) {
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+
                         const SnackBar(
+
                           content: Text(
                             'Erro na identificação da IA',
                           ),
@@ -313,36 +409,109 @@ class _CameraPageState extends State<CameraPage> {
                       return;
                     }
 
-                    final snakeId = prediction['snake_id'];
+                    final snakeId =
+                    prediction['snake_id'];
 
-                    final confidence = prediction['confidence'];
+                    final confidence =
+                    prediction['confidence'];
 
-                    final snake = await snakeInformationService.getSnakeById(snakeId);
+                    // 🔥 COBRA
+                    final snake =
+
+                    await snakeInformationService
+                        .getSnakeById(
+                      snakeId,
+                    );
 
                     if (!mounted) return;
 
                     if (snake == null) {
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+
                         const SnackBar(
-                          content: Text('Erro ao buscar cobra')
+
+                          content: Text(
+                            'Erro ao buscar cobra',
+                          ),
                         ),
                       );
 
                       return;
                     }
 
-                    Navigator.push(context,
+                    // 🔥 USER
+                    final user =
+
+                        Supabase.instance.client
+                            .auth.currentUser;
+
+                    // 🔥 GPS
+                    final position =
+
+                    await Geolocator
+                        .getCurrentPosition();
+
+                    // 🔥 HISTÓRICO
+                    try {
+
+                      print("INSERTANDO...");
+
+                      await Supabase.instance.client
+
+                          .from('snake_historic')
+
+                          .insert({
+
+                        'profiles_id':
+                        user!.id,
+
+                        'snakes_id':
+                        snake.id,
+
+                        'image_url':
+                        uploadResult.filePath,
+
+                        'data_photo':
+                        DateTime.now()
+                            .toIso8601String(),
+
+                        'latitude':
+                        position.latitude,
+
+                        'longitude':
+                        position.longitude,
+                      });
+
+                      print("HISTORICO SALVO");
+
+                    } catch (e) {
+
+                      print("ERRO INSERT:");
+                      print(e.toString());
+                    }
+
+                    // 🔥 INFO
+                    Navigator.push(
+
+                      context,
 
                       MaterialPageRoute(
 
-                        builder: (_) => SnakeInformationScreen(
+                        builder: (_) =>
+                            SnakeInformationScreen(
 
-                          snake: snake,
+                              snake: snake,
 
-                          confidence:
-                          (confidence as num).toDouble(),
-                        ),
+                              confidence:
+                              (confidence as num)
+                                  .toDouble(),
+
+                              imageUrl:
+                              uploadResult.filePath,
+                            ),
                       ),
                     );
                   },
@@ -350,7 +519,9 @@ class _CameraPageState extends State<CameraPage> {
                   child: Text(
 
                     isFromGallery
+
                         ? "confirm_new_photo".tr()
+
                         : "confirm_capture".tr(),
 
                     style: const TextStyle(
@@ -359,23 +530,35 @@ class _CameraPageState extends State<CameraPage> {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(
+                  height: 10,
+                ),
 
+                // 🔄 NOVA FOTO
                 ElevatedButton(
 
-                  style: ElevatedButton.styleFrom(
+                  style:
+                  ElevatedButton.styleFrom(
+
                     backgroundColor:
-                    const Color(0xFF115F15),
+                    const Color(
+                      0xFF115F15,
+                    ),
                   ),
 
                   onPressed: () {
-                    Navigator.pop(dialogContext);
+
+                    Navigator.pop(
+                      dialogContext,
+                    );
                   },
 
                   child: Text(
 
                     isFromGallery
+
                         ? "choose_new_photo".tr()
+
                         : "new_capture".tr(),
 
                     style: const TextStyle(
@@ -391,6 +574,7 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  // 📸 FOTO
   Future<void> takePhoto() async {
 
     if (_controller != null &&
@@ -400,15 +584,19 @@ class _CameraPageState extends State<CameraPage> {
       await _controller!.takePicture();
 
       showConfirmDialog(
+
         image.path,
+
         isFromGallery: false,
       );
     }
   }
 
+  // 🖼️ GALERIA
   Future<void> pickFromGallery() async {
 
     final XFile? image =
+
     await _picker.pickImage(
       source: ImageSource.gallery,
     );
@@ -416,7 +604,9 @@ class _CameraPageState extends State<CameraPage> {
     if (image != null) {
 
       showConfirmDialog(
+
         image.path,
+
         isFromGallery: true,
       );
     }
@@ -441,10 +631,15 @@ class _CameraPageState extends State<CameraPage> {
 
         children: [
 
+          // 📸 CAMERA
           Center(
 
-            child: _controller == null ||
-                !_controller!.value.isInitialized
+            child:
+            _controller == null ||
+
+                !_controller!
+                    .value
+                    .isInitialized
 
                 ? const CircularProgressIndicator(
               color: Colors.white,
@@ -453,18 +648,26 @@ class _CameraPageState extends State<CameraPage> {
                 : Container(
 
               width:
-              MediaQuery.of(context).size.width * 0.8,
+              MediaQuery.of(context)
+                  .size
+                  .width * 0.8,
 
               height:
-              MediaQuery.of(context).size.width * 0.8,
+              MediaQuery.of(context)
+                  .size
+                  .width * 0.8,
 
               decoration: BoxDecoration(
 
                 borderRadius:
-                BorderRadius.circular(20),
+                BorderRadius.circular(
+                  20,
+                ),
 
                 border: Border.all(
+
                   color: Colors.black,
+
                   width: 4,
                 ),
               ),
@@ -472,7 +675,9 @@ class _CameraPageState extends State<CameraPage> {
               child: ClipRRect(
 
                 borderRadius:
-                BorderRadius.circular(16),
+                BorderRadius.circular(
+                  16,
+                ),
 
                 child: CameraPreview(
                   _controller!,
@@ -481,6 +686,7 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
+          // 🔝 TOPO
           Positioned(
 
             top: 60,
@@ -497,11 +703,13 @@ class _CameraPageState extends State<CameraPage> {
 
                     radius: 30,
 
-                    backgroundColor: Colors.white,
+                    backgroundColor:
+                    Colors.white,
 
                     child: ClipOval(
 
                       child: Image.asset(
+
                         'assets/logo.png',
 
                         width: 50,
@@ -512,15 +720,23 @@ class _CameraPageState extends State<CameraPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
 
                   Text(
+
                     "camera_capture".tr(),
 
-                    style: const TextStyle(
+                    style:
+                    const TextStyle(
+
                       color: Colors.white,
+
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+
+                      fontWeight:
+                      FontWeight.bold,
                     ),
                   ),
                 ],
@@ -528,6 +744,7 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ),
 
+          // 🔘 BOTÕES
           Positioned(
 
             bottom: 30,
@@ -541,18 +758,23 @@ class _CameraPageState extends State<CameraPage> {
 
               children: [
 
+                // 🖼️ GALERIA
                 IconButton(
 
                   icon: const Icon(
+
                     Icons.photo_library,
+
                     color: Colors.white,
                   ),
 
                   iconSize: 35,
 
-                  onPressed: pickFromGallery,
+                  onPressed:
+                  pickFromGallery,
                 ),
 
+                // 📸 FOTO
                 GestureDetector(
 
                   onTap: takePhoto,
@@ -569,7 +791,9 @@ class _CameraPageState extends State<CameraPage> {
                       shape: BoxShape.circle,
 
                       border: Border.all(
+
                         color: Colors.black,
+
                         width: 3,
                       ),
                     ),
@@ -578,24 +802,32 @@ class _CameraPageState extends State<CameraPage> {
 
                       Icons.camera_alt,
 
-                      color: Color(0xFF115F15),
+                      color: Color(
+                        0xFF115F15,
+                      ),
 
                       size: 35,
                     ),
                   ),
                 ),
 
+                // 🏠 HOME
                 IconButton(
 
                   icon: const Icon(
+
                     Icons.home,
+
                     color: Colors.white,
                   ),
 
                   iconSize: 35,
 
                   onPressed: () {
-                    Navigator.pop(context);
+
+                    Navigator.pop(
+                      context,
+                    );
                   },
                 ),
               ],

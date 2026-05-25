@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:snakes_of_imt/screens/screens.dart';
+
+import 'screens/screens.dart';
 
 void main() async {
 
@@ -32,19 +34,20 @@ void main() async {
       fallbackLocale:
       const Locale('pt', 'BR'),
 
+      startLocale:
+      const Locale('pt', 'BR'),
+
       child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
-    final session =
-        Supabase.instance.client.auth.currentSession;
 
     return MaterialApp(
 
@@ -52,14 +55,13 @@ class MyApp extends StatelessWidget {
 
       title: 'Snakes of IMT',
 
-      localizationsDelegates:
-      context.localizationDelegates,
+      locale: context.locale,
 
       supportedLocales:
       context.supportedLocales,
 
-      locale:
-      context.locale,
+      localizationsDelegates:
+      context.localizationDelegates,
 
       theme: ThemeData(
 
@@ -73,9 +75,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      home: session != null
-          ? const HomePage()
-          : const LoginPage(),
+      home: const LoginPage(),
     );
   }
 }

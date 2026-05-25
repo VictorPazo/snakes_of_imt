@@ -57,6 +57,41 @@
 
   "login": "LOGIN",
 
-  "create_account": "Não tem conta? Criar uma nova"
+  "create_account": "Não tem conta? Criar uma nova",
+
+  "no_history": "Nenhuma identificação encontrada",
+
+  "poisonous": "Venenosa",
+  "non_poisonous": "Não venenosa",
+
+  "confidence": "Confiança",
+  "date": "Data",
+
+  "snake_identified": "Serpente identificada",
+
+  "family": "Família",
+  "genus": "Gênero",
+  "venom_type": "Tipo de veneno",
+  "dangerousness": "Periculosidade",
+  "antivenom": "Antiveneno",
+
+  "description": "Descrição",
+
+  "yes": "Sim",
+  "no": "Não",
+
+  "not_informed": "Não informado",
+  "no_description": "Sem descrição",
+
+  "forgot_password": "Esqueceu a senha?",
+  "reset_password": "Redefinir senha",
+  "cancel": "Cancelar",
+  "send": "Enviar",
+  "reset_email_sent": "Email de redefinição enviado!",
+  "delete_history": "Excluir histórico",
+  "delete_history_text": "Deseja remover esta identificação?",
+  "delete": "Excluir",
+  "history_deleted": "Histórico removido",
+  "you_are_here": "Você está aqui"
 
 }
