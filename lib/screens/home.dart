@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,7 +33,6 @@ class _HomePageState extends State<HomePage> {
     loadMap();
   }
 
-  // 🔥 CARREGA TUDO
   Future<void> loadMap() async {
 
     await getUserLocation();
@@ -55,7 +53,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
-  // 📍 LOCALIZAÇÃO
   Future<void> getUserLocation() async {
 
     bool serviceEnabled;
@@ -100,7 +97,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 🐍 CARREGAR MARKERS
   Future<void> loadSnakeMarkers() async {
 
     try {
@@ -117,7 +113,6 @@ class _HomePageState extends State<HomePage> {
 
       Set<Marker> loadedMarkers = {};
 
-      // 📍 USUÁRIO
       loadedMarkers.add(
 
         Marker(
@@ -133,7 +128,6 @@ class _HomePageState extends State<HomePage> {
         ),
       );
 
-      // 🐍 COBRAS
       for (var item in response) {
 
         if (item['latitude'] == null ||
@@ -196,12 +190,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // 🔻 NAVBAR
   void onItemTapped(int index) {
 
     switch (index) {
 
-    // ⚙️ CONFIG
       case 0:
 
         Navigator.push(
@@ -216,7 +208,6 @@ class _HomePageState extends State<HomePage> {
 
         break;
 
-    // 📜 HISTÓRICO
       case 2:
 
         Navigator.push(
@@ -234,7 +225,6 @@ class _HomePageState extends State<HomePage> {
 
         break;
 
-    // 📸 CAMERA
       case 3:
 
         Navigator.push(
@@ -267,7 +257,6 @@ class _HomePageState extends State<HomePage> {
 
           const SizedBox(height: 80),
 
-          // 🔝 LOGO
           Column(
 
             children: [
@@ -312,7 +301,6 @@ class _HomePageState extends State<HomePage> {
 
           const SizedBox(height: 20),
 
-          // 🗺️ MAPA
           Expanded(
 
             child: Padding(
@@ -358,7 +346,6 @@ class _HomePageState extends State<HomePage> {
 
           const SizedBox(height: 20),
 
-          // 📸 BOTÃO CAMERA
           Padding(
 
             padding:
@@ -445,7 +432,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
-      // 🔻 NAVBAR
       bottomNavigationBar: BottomNavigationBar(
 
         currentIndex: selectedIndex,

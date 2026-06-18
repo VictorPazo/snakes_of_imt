@@ -48,8 +48,6 @@ class _CadastroPageState
   final Color primaryGreen =
   const Color(0x99115F15);
 
-  // 🔥 VALIDADORES
-
   bool get nomeInvalido =>
       tentouCadastrar &&
           nomeController.text.trim().isEmpty;
@@ -205,7 +203,6 @@ class _CadastroPageState
                         },
                       ),
 
-                      // 🔥 ESTADO
                       Padding(
 
                         padding:
@@ -315,7 +312,6 @@ class _CadastroPageState
                         ),
                       ),
 
-                      // 🔥 CIDADE
                       Padding(
 
                         padding:
@@ -402,7 +398,6 @@ class _CadastroPageState
 
                       const SizedBox(height: 20),
 
-                      // 🔥 BOTÃO
                       SizedBox(
 
                         width: double.infinity,
@@ -524,7 +519,6 @@ class _CadastroPageState
     );
   }
 
-  // 🔥 FIELD
   Widget buildField(
 
       String label,

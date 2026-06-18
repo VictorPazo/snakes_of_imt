@@ -1,6 +1,5 @@
 import 'dart:io';
 import '../services/upload_service.dart';
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,7 +54,7 @@ class _CameraPageState
     });
   }
 
-  // 📸 CAMERA
+  //CAMERA
   Future<void> initCamera() async {
 
     cameras = await availableCameras();
@@ -66,11 +65,35 @@ class _CameraPageState
     );
 
     await _controller!.initialize();
+    await applyFlashSetting();
 
     setState(() {});
   }
 
-  // 📚 TUTORIAL
+  Future<void> applyFlashSetting() async {
+
+    if (_controller == null ||
+        !_controller!.value.isInitialized) {
+      return;
+    }
+
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    final bool autoFlash =
+        prefs.getBool('autoFlash') ?? false;
+
+    try {
+      await _controller!.setFlashMode(
+        autoFlash
+            ? FlashMode.always
+            : FlashMode.off,
+      );
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   Future<void> showTutorialPopup() async {
 
     final prefs =
@@ -580,6 +603,13 @@ class _CameraPageState
     if (_controller != null &&
         _controller!.value.isInitialized) {
 
+      // 🔦 FLASH
+      // Garante que o modo de flash esteja sincronizado com a
+      // preferência salva antes de capturar, cobrindo o caso em
+      // que o usuário mudou a configuração e voltou para a câmera
+      // sem que a tela seja recriada.
+      await applyFlashSetting();
+
       final image =
       await _controller!.takePicture();
 
@@ -811,7 +841,6 @@ class _CameraPageState
                   ),
                 ),
 
-                // 🏠 HOME
                 IconButton(
 
                   icon: const Icon(

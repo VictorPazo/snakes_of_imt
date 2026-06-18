@@ -30,7 +30,7 @@ class SnakeInformationScreen
     final image =
     Supabase.instance.client.storage
 
-        .from('user-history')
+        .from('snake-species')
 
         .getPublicUrl(imageUrl);
 

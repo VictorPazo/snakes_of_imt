@@ -8,7 +8,7 @@ class IAService {
 
   //colocar ip da máquina local
   final String baseUrl =
-      'http://192.168.0.39:8000';
+      'http://192.168.15.12:8000';
 
   Future<Map<String, dynamic>?> predictSnake(
       File imageFile,
@@ -31,7 +31,7 @@ class IAService {
 
       final response = await request
           .send()
-          .timeout(const Duration(minutes: 1));
+          .timeout(const Duration(minutes: 5));
 
       final responseBody =
           await response.stream.bytesToString();
