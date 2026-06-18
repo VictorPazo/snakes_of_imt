@@ -32,7 +32,7 @@ class SnakeInformationScreen
 
         .from('snake-species')
 
-        .getPublicUrl(imageUrl);
+        .getPublicUrl(snake.imageName);
 
     return Scaffold(
 
@@ -160,8 +160,8 @@ class SnakeInformationScreen
                   ),
 
                   infoRow(
-                    'Periculosidade',
-                    snake.dangerousness
+                    'Tipo de dentição',
+                    snake.dentition_type
                         .toString(),
                   ),
 

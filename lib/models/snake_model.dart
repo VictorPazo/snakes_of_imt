@@ -12,7 +12,7 @@ class SnakeModel {
 
   final bool poisonous;
 
-  final int dangerousness;
+  final String dentition_type;
 
   final String venomType;
 
@@ -34,7 +34,7 @@ class SnakeModel {
 
     required this.poisonous,
 
-    required this.dangerousness,
+    required this.dentition_type,
 
     required this.venomType,
 
@@ -61,7 +61,7 @@ class SnakeModel {
 
       poisonous: map['poisonous'],
 
-      dangerousness: map['dangerousness'],
+      dentition_type: map['dentition_type'],
 
       venomType: map['venom_type'],
 

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -6,6 +7,12 @@ import 'screens/screens.dart';
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Trava o app apenas na vertical (nunca rotaciona)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   await EasyLocalization.ensureInitialized();
 

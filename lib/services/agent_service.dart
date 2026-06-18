@@ -8,7 +8,7 @@ class IAService {
 
   //colocar ip da máquina local
   final String baseUrl =
-      'http://192.168.15.12:8000';
+      'http://192.168.0.8:8000';
 
   Future<Map<String, dynamic>?> predictSnake(
       File imageFile,
