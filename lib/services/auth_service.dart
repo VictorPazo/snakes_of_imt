@@ -23,18 +23,23 @@ class AuthService {
     try {
       if (!senhaForte(senha)) {
         return
-        'A senha deve conter:\n'
-        '- mínimo 8 caracteres\n'
-        '- letra maiúscula\n'
-        '- letra minúscula\n'
-        '- número\n'
-        '- caractere especial';
+          'A senha deve conter:\n'
+              '- mínimo 8 caracteres\n'
+              '- letra maiúscula\n'
+              '- letra minúscula\n'
+              '- número\n'
+              '- caractere especial';
       }
-      
+
       final AuthResponse response =
-          await supabase.auth.signUp(
+      await supabase.auth.signUp(
         email: email,
         password: senha,
+        data: {
+          'nome': nome,
+          'estado': estado,
+          'cidade': cidade,
+        },
       );
 
       final user = response.user;
@@ -42,14 +47,6 @@ class AuthService {
       if (user == null) {
         return 'Erro ao criar usuário';
       }
-
-      await supabase.from('profiles').insert({
-        'id': user.id,
-        'name': nome,
-        'mail': email,
-        'state': estado,
-        'city': cidade,
-      });
 
       return null;
 
@@ -69,7 +66,7 @@ class AuthService {
 
       return 'Erro inesperado! Será implementado em atualizações futuras';
     }
-    
+
   }
 
   Future<String?> login({
@@ -84,7 +81,7 @@ class AuthService {
       );
 
       return null;
-      
+
     } catch (e) {
 
       if (e is AuthException) {

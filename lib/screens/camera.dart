@@ -39,7 +39,7 @@ class _CameraPageState
   SnakeInformationService();
 
   final Color primaryGreen =
-  const Color(0x99115F15);
+  const Color(0xFF12352A);
 
   @override
   void initState() {
@@ -235,7 +235,7 @@ class _CameraPageState
 
                         backgroundColor:
                         const Color(
-                          0xFF115F15,
+                          0xFF12352A,
                         ),
                       ),
 
@@ -365,7 +365,7 @@ class _CameraPageState
 
                     backgroundColor:
                     const Color(
-                      0xFF115F15,
+                      0xFF12352A,
                     ),
                   ),
 
@@ -565,7 +565,7 @@ class _CameraPageState
 
                     backgroundColor:
                     const Color(
-                      0xFF115F15,
+                      0xFF12352A,
                     ),
                   ),
 
@@ -833,7 +833,7 @@ class _CameraPageState
                       Icons.camera_alt,
 
                       color: Color(
-                        0xFF115F15,
+                        0xFF12352A,
                       ),
 
                       size: 35,

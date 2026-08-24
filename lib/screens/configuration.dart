@@ -20,7 +20,7 @@ class _ConfigurationPageState
       Supabase.instance.client.auth.currentUser;
 
   final Color primaryGreen =
-  const Color(0x99115F15);
+  const Color(0xFF12352A);
 
   bool notificationsEnabled = true;
   bool showConfidence = true;

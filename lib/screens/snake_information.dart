@@ -37,13 +37,12 @@ class SnakeInformationScreen
     return Scaffold(
 
       backgroundColor:
-      const Color(0xFF115F15),
+      const Color(0xFF12352A),
 
       appBar: AppBar(
 
         backgroundColor:
-        const Color(0xFF115F15),
-
+        const Color(0xFF14453A),
         elevation: 0,
 
         leading: IconButton(

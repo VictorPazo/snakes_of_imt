@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
   int selectedIndex = 1;
 
   final Color primaryGreen =
-  const Color(0x99115F15);
+  const Color(0xFF12352A);
 
   GoogleMapController? mapController;
 
@@ -285,7 +285,7 @@ class _HomePageState extends State<HomePage> {
 
               const Text(
 
-                "SerPython",
+                "OphidIA",
 
                 style: TextStyle(
 
@@ -380,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                 decoration: BoxDecoration(
 
                   color:
-                  const Color(0xFF115F15),
+                  const Color(0xFF14453A),
 
                   borderRadius:
                   BorderRadius.circular(

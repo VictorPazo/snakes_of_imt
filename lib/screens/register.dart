@@ -33,6 +33,9 @@ class _CadastroPageState
 
   String? cidadeSelecionada;
 
+  final TextEditingController cidadeBuscaController =
+  TextEditingController();
+
   bool tentouCadastrar = false;
 
   final List<String> estados = [
@@ -287,6 +290,12 @@ class _CadastroPageState
                               cidadeSelecionada =
                               null;
 
+                              // 🔎 BUSCA CIDADE
+                              // Limpa o texto digitado no campo de busca
+                              // sempre que o estado muda, já que a lista
+                              // de cidades válidas também mudou.
+                              cidadeBuscaController.clear();
+
                               cidades = [];
                             });
 
@@ -312,6 +321,10 @@ class _CadastroPageState
                         ),
                       ),
 
+                      // 🔎 BUSCA CIDADE
+                      // Substitui o DropdownButtonFormField de Cidade por um
+                      // Autocomplete que filtra a lista `cidades` (já carregada
+                      // pelo IbgeService) conforme o usuário digita.
                       Padding(
 
                         padding:
@@ -319,79 +332,148 @@ class _CadastroPageState
                           bottom: 15,
                         ),
 
-                        child:
-                        DropdownButtonFormField<String>(
+                        child: Autocomplete<String>(
 
-                          value:
-                          cidadeSelecionada,
+                          optionsBuilder: (TextEditingValue textEditingValue) {
 
-                          decoration:
-                          InputDecoration(
+                            // Se nenhum estado foi escolhido ainda, não há
+                            // o que sugerir.
+                            if (cidades.isEmpty) {
+                              return const Iterable<String>.empty();
+                            }
 
-                            labelText:
-                            'Cidade',
+                            final query = textEditingValue.text.toLowerCase();
 
-                            errorText:
-                            cidadeInvalida
+                            if (query.isEmpty) {
+                              return cidades;
+                            }
 
-                                ? 'Selecione uma cidade'
-                                : null,
+                            return cidades.where((cidade) {
+                              return cidade.toLowerCase().contains(query);
+                            });
+                          },
 
-                            enabledBorder:
-                            OutlineInputBorder(
-
-                              borderRadius:
-                              BorderRadius.circular(10),
-
-                              borderSide:
-                              BorderSide(
-
-                                color:
-                                cidadeInvalida
-
-                                    ? Colors.red
-                                    : Colors.grey,
-                              ),
-                            ),
-
-                            focusedBorder:
-                            OutlineInputBorder(
-
-                              borderRadius:
-                              BorderRadius.circular(10),
-
-                              borderSide:
-                              BorderSide(
-
-                                color:
-                                cidadeInvalida
-
-                                    ? Colors.red
-                                    : Colors.green,
-                              ),
-                            ),
-                          ),
-
-                          items:
-                          cidades.map((cidade) {
-
-                            return DropdownMenuItem(
-
-                              value: cidade,
-
-                              child: Text(
-                                cidade,
-                              ),
-                            );
-                          }).toList(),
-
-                          onChanged: (value) {
+                          onSelected: (String selecao) {
 
                             setState(() {
-
-                              cidadeSelecionada =
-                                  value;
+                              cidadeSelecionada = selecao;
                             });
+                          },
+
+                          fieldViewBuilder: (
+                              BuildContext context,
+                              TextEditingController fieldController,
+                              FocusNode fieldFocusNode,
+                              VoidCallback onFieldSubmitted,
+                              ) {
+
+                            // Mantém o controller interno do Autocomplete em
+                            // sincronia com o nosso, e vice-versa, para que o
+                            // clear() feito ao trocar o Estado também limpe
+                            // o que está visível no campo de texto.
+                            cidadeBuscaController.value = fieldController.value;
+
+                            fieldController.addListener(() {
+                              if (fieldController.text != cidadeSelecionada) {
+                                // Usuário está digitando algo diferente do que
+                                // tinha selecionado antes: invalida a seleção
+                                // até que ele escolha uma opção da lista de novo.
+                                if (cidadeSelecionada != null &&
+                                    fieldController.text != cidadeSelecionada) {
+                                  setState(() {
+                                    cidadeSelecionada = null;
+                                  });
+                                }
+                              }
+                            });
+
+                            return TextFormField(
+
+                              controller: fieldController,
+
+                              focusNode: fieldFocusNode,
+
+                              enabled: cidades.isNotEmpty,
+
+                              decoration: InputDecoration(
+
+                                labelText: cidades.isEmpty
+                                    ? 'Selecione um estado primeiro'
+                                    : 'Cidade',
+
+                                errorText:
+                                cidadeInvalida
+
+                                    ? 'Selecione uma cidade'
+                                    : null,
+
+                                enabledBorder:
+                                OutlineInputBorder(
+
+                                  borderRadius:
+                                  BorderRadius.circular(10),
+
+                                  borderSide:
+                                  BorderSide(
+
+                                    color:
+                                    cidadeInvalida
+
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                ),
+
+                                focusedBorder:
+                                OutlineInputBorder(
+
+                                  borderRadius:
+                                  BorderRadius.circular(10),
+
+                                  borderSide:
+                                  BorderSide(
+
+                                    color:
+                                    cidadeInvalida
+
+                                        ? Colors.red
+                                        : Colors.green,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+
+                          optionsViewBuilder: (
+                              BuildContext context,
+                              AutocompleteOnSelected<String> onSelected,
+                              Iterable<String> options,
+                              ) {
+
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4,
+                                borderRadius: BorderRadius.circular(10),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 220,
+                                  ),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder: (context, index) {
+                                      final option = options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(option),
+                                        onTap: () => onSelected(option),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -450,6 +532,25 @@ class _CadastroPageState
 
                             if (erro == null) {
 
+                              if (!mounted) return;
+
+                              // 🔁 VOLTAR AO LOGIN
+                              // Navega primeiro, e mostra o SnackBar de
+                              // sucesso já no contexto da LoginPage —
+                              // assim a transição não compete com o
+                              // tempo de exibição do SnackBar na tela
+                              // de Cadastro, que está sendo removida.
+                              Navigator.pushAndRemoveUntil(
+
+                                context,
+
+                                MaterialPageRoute(
+                                  builder: (_) => LoginPage(),
+                                ),
+
+                                    (route) => false,
+                              );
+
                               ScaffoldMessenger.of(
                                 context,
                               ).showSnackBar(
@@ -457,7 +558,7 @@ class _CadastroPageState
                                 const SnackBar(
 
                                   content: Text(
-                                    'Usuário cadastrado com sucesso',
+                                    'Cadastro criado com sucesso',
                                   ),
                                 ),
                               );
@@ -519,10 +620,12 @@ class _CadastroPageState
     );
   }
 
+  // 🧱 CAMPO PADRÃO
+  // Constrói um TextFormField padronizado, com suporte a
+  // campo de senha (ícone de olho para mostrar/ocultar) e a
+  // exibição de erro de validação.
   Widget buildField(
-
       String label,
-
       TextEditingController controller, {
 
         bool isPassword = false,
@@ -536,98 +639,65 @@ class _CadastroPageState
 
     return Padding(
 
-      padding:
-      const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.only(
+        bottom: 15,
+      ),
 
-      child: TextField(
+      child: TextFormField(
 
         controller: controller,
 
         obscureText:
-        isPassword ? !mostrarSenha : false,
-
-        autocorrect: false,
-
-        enableSuggestions: false,
+        isPassword && !mostrarSenha,
 
         decoration: InputDecoration(
 
           labelText: label,
 
-          errorText:
-          error ? 'Campo inválido' : null,
+          errorText: error
+              ? 'Campo inválido'
+              : null,
 
-          enabledBorder:
-          OutlineInputBorder(
+          enabledBorder: OutlineInputBorder(
 
             borderRadius:
             BorderRadius.circular(10),
 
             borderSide: BorderSide(
 
-              color:
-              error
+              color: error
                   ? Colors.red
                   : Colors.grey,
             ),
           ),
 
-          focusedBorder:
-          OutlineInputBorder(
+          focusedBorder: OutlineInputBorder(
 
             borderRadius:
             BorderRadius.circular(10),
 
             borderSide: BorderSide(
 
-              color:
-              error
+              color: error
                   ? Colors.red
                   : Colors.green,
             ),
           ),
 
-          errorBorder:
-          OutlineInputBorder(
-
-            borderRadius:
-            BorderRadius.circular(10),
-
-            borderSide:
-            const BorderSide(
-              color: Colors.red,
-            ),
-          ),
-
-          focusedErrorBorder:
-          OutlineInputBorder(
-
-            borderRadius:
-            BorderRadius.circular(10),
-
-            borderSide:
-            const BorderSide(
-              color: Colors.red,
-              width: 2,
-            ),
-          ),
-
+          // 👁️ MOSTRAR/OCULTAR SENHA
+          // Só exibe o ícone de olho quando o campo for de senha.
           suffixIcon: isPassword
-
               ? IconButton(
 
             icon: Icon(
 
               mostrarSenha
-
                   ? Icons.visibility
                   : Icons.visibility_off,
             ),
 
-            onPressed:
-            onTogglePassword,
+            onPressed: onTogglePassword,
           )
-
               : null,
         ),
       ),
