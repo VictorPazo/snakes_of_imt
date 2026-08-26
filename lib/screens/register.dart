@@ -38,6 +38,8 @@ class _CadastroPageState
 
   bool tentouCadastrar = false;
 
+  bool isRegistering = false;
+
   final List<String> estados = [
 
     'AC','AL','AP','AM','BA','CE','DF','ES',
@@ -47,9 +49,6 @@ class _CadastroPageState
   ];
 
   List<String> cidades = [];
-
-  final Color primaryGreen =
-  const Color(0x99115F15);
 
   bool get nomeInvalido =>
       tentouCadastrar &&
@@ -88,15 +87,13 @@ class _CadastroPageState
 
     return Scaffold(
 
-      backgroundColor: primaryGreen,
-
       body: SafeArea(
 
         child: Column(
 
           children: [
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             const Text(
 
@@ -104,20 +101,20 @@ class _CadastroPageState
 
               style: TextStyle(
 
-                color: Colors.white,
+                color: AppColors.onBackground,
 
                 fontSize: 22,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             Expanded(
 
               child: Container(
 
                 padding:
-                const EdgeInsets.all(20),
+                const EdgeInsets.all(AppSpacing.lg),
 
                 decoration:
                 const BoxDecoration(
@@ -210,7 +207,7 @@ class _CadastroPageState
 
                         padding:
                         const EdgeInsets.only(
-                          bottom: 15,
+                          bottom: AppSpacing.md,
                         ),
 
                         child:
@@ -329,7 +326,7 @@ class _CadastroPageState
 
                         padding:
                         const EdgeInsets.only(
-                          bottom: 15,
+                          bottom: AppSpacing.md,
                         ),
 
                         child: Autocomplete<String>(
@@ -478,7 +475,7 @@ class _CadastroPageState
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.lg),
 
                       SizedBox(
 
@@ -486,7 +483,11 @@ class _CadastroPageState
 
                         child: ElevatedButton(
 
-                          onPressed: () async {
+                          onPressed: isRegistering
+
+                              ? null
+
+                              : () async {
 
                             setState(() {
 
@@ -505,6 +506,10 @@ class _CadastroPageState
                             ) {
                               return;
                             }
+
+                            setState(() {
+                              isRegistering = true;
+                            });
 
                             final authService =
                             AuthService();
@@ -530,9 +535,13 @@ class _CadastroPageState
                               cidadeSelecionada ?? '',
                             );
 
-                            if (erro == null) {
+                            if (!mounted) return;
 
-                              if (!mounted) return;
+                            setState(() {
+                              isRegistering = false;
+                            });
+
+                            if (erro == null) {
 
                               // 🔁 VOLTAR AO LOGIN
                               // Navega primeiro, e mostra o SnackBar de
@@ -544,8 +553,9 @@ class _CadastroPageState
 
                                 context,
 
-                                MaterialPageRoute(
+                                AppPageRoute(
                                   builder: (_) => LoginPage(),
+                                  transition: AppTransition.fade,
                                 ),
 
                                     (route) => false,
@@ -577,37 +587,53 @@ class _CadastroPageState
                             }
                           },
 
-                          style:
-                          ElevatedButton.styleFrom(
+                          child: isRegistering
 
-                            backgroundColor:
-                            const Color(0xFFFFFFFF),
+                              ? const SizedBox(
 
-                            padding:
-                            const EdgeInsets.all(15),
-                          ),
+                            width: 20,
+                            height: 20,
 
-                          child: const Text(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+
+                              : const Text(
                             "Realizar Cadastro",
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.lg),
 
-                      IconButton(
-
-                        icon: const Icon(
-
-                          Icons.keyboard_arrow_down,
-
-                          size: 40,
-                        ),
+                      TextButton.icon(
 
                         onPressed: () {
 
                           Navigator.pop(context);
                         },
+
+                        icon: const Icon(
+
+                          Icons.keyboard_arrow_down,
+
+                          color: AppColors.background,
+                        ),
+
+                        label: const Text(
+
+                          'Voltar para login',
+
+                          style: TextStyle(
+
+                            color: AppColors.background,
+
+                            fontWeight:
+                            FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -640,7 +666,7 @@ class _CadastroPageState
     return Padding(
 
       padding: const EdgeInsets.only(
-        bottom: 15,
+        bottom: AppSpacing.md,
       ),
 
       child: TextFormField(
@@ -649,6 +675,15 @@ class _CadastroPageState
 
         obscureText:
         isPassword && !mostrarSenha,
+
+        // Reconstrói a tela a cada tecla digitada para que os
+        // getters de validação (que leem controller.text) reavaliem
+        // e a mensagem de erro suma assim que o campo for corrigido,
+        // sem esperar por outro rebuild (ex: alternar visibilidade
+        // da senha).
+        onChanged: (_) {
+          setState(() {});
+        },
 
         decoration: InputDecoration(
 

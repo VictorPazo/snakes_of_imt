@@ -69,17 +69,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates:
       context.localizationDelegates,
 
-      theme: ThemeData(
-
-        colorScheme:
-        ColorScheme.fromSeed(
-
-          seedColor:
-          const Color(0xFF126516),
-        ),
-
-        useMaterial3: true,
-      ),
+      theme: AppTheme.theme,
 
       home: const LoginPage(),
     );

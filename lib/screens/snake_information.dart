@@ -1,17 +1,25 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/snake_model.dart';
-import 'history.dart';
+import '../theme/app_theme.dart';
+import '../theme/animated_entrance.dart';
 
 class SnakeInformationScreen
-    extends StatelessWidget {
+    extends StatefulWidget {
 
   final SnakeModel snake;
 
   final double confidence;
 
   final String imageUrl;
+
+  // Tag do Hero usado para animar continuidade entre a foto na tela
+  // de confirmação da câmera e a imagem aqui. Nulo quando a tela é
+  // aberta a partir do histórico, onde não há Hero de origem.
+  final String? heroTag;
 
   const SnakeInformationScreen({
 
@@ -22,7 +30,42 @@ class SnakeInformationScreen
     required this.confidence,
 
     required this.imageUrl,
+
+    this.heroTag,
   });
+
+  @override
+  State<SnakeInformationScreen> createState() =>
+      _SnakeInformationScreenState();
+}
+
+class _SnakeInformationScreenState
+    extends State<SnakeInformationScreen> {
+
+  bool showConfidence = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    loadShowConfidenceSetting();
+  }
+
+  // ⚙️ CONFIGURAÇÃO
+  Future<void> loadShowConfidenceSetting() async {
+
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    final value =
+        prefs.getBool('showConfidence') ?? true;
+
+    if (!mounted) return;
+
+    setState(() {
+      showConfidence = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,53 +75,83 @@ class SnakeInformationScreen
 
         .from('snake-species')
 
-        .getPublicUrl(snake.imageName);
+        .getPublicUrl(widget.snake.imageName);
+
+    final bool hasConfidence =
+        widget.confidence > 0;
+
+    Widget snakeImage = Image.network(
+
+      image,
+
+      height: 250,
+
+      width: double.infinity,
+
+      fit: BoxFit.cover,
+
+      errorBuilder: (
+          context,
+          error,
+          stackTrace,
+          ) {
+
+        return Container(
+
+          height: 250,
+
+          width: double.infinity,
+
+          color: Colors.grey[300],
+
+          child: const Center(
+
+            child: Icon(
+
+              Icons.image_not_supported,
+
+              size: 50,
+            ),
+          ),
+        );
+      },
+    );
+
+    if (widget.heroTag != null) {
+
+      snakeImage = Hero(
+        tag: widget.heroTag!,
+        child: snakeImage,
+      );
+    }
 
     return Scaffold(
 
-      backgroundColor:
-      const Color(0xFF12352A),
-
       appBar: AppBar(
 
-        backgroundColor:
-        const Color(0xFF14453A),
         elevation: 0,
 
         leading: IconButton(
 
           icon: const Icon(
             Icons.arrow_back,
-            color: Colors.white,
+            color: AppColors.onBackground,
           ),
 
           onPressed: () {
 
-            Navigator.pushReplacement(
-
-              context,
-
-              MaterialPageRoute(
-                builder: (_) =>
-                const HistoryPage(),
-              ),
-            );
+            Navigator.pop(context);
           },
         ),
 
-        title: const Text(
-
-          'Serpente identificada',
-
-          style: TextStyle(
-            color: Colors.white,
-          ),
+        title: Text(
+          "snake_identified".tr(),
         ),
       ),
 
       body: SingleChildScrollView(
 
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.lg),
 
         child: Column(
 
@@ -89,42 +162,63 @@ class SnakeInformationScreen
               borderRadius:
               BorderRadius.circular(20),
 
-              child: Image.network(
+              child: snakeImage,
+            ),
 
-                image,
+            const SizedBox(height: AppSpacing.lg),
 
-                height: 250,
+            FadeSlideIn(
 
-                width: double.infinity,
+              child: Text(
 
-                fit: BoxFit.cover,
+                widget.snake.specie,
+
+                textAlign: TextAlign.center,
+
+                style: AppTextStyles.screenTitle,
               ),
             ),
 
-            const SizedBox(height: 20),
+            // 🎯 CONFIANÇA DA IA
+            // Só mostra se o usuário mantiver o toggle "Mostrar confiança
+            // da IA" ativo em Configurações e se houver um valor válido
+            // (identificações abertas pelo histórico não guardam a
+            // confiança original, então chegam aqui com confidence == 0).
+            if (showConfidence && hasConfidence) ...[
 
-            Text(
+              const SizedBox(height: AppSpacing.md),
 
-              snake.specie,
+              FadeSlideIn(
 
-              textAlign: TextAlign.center,
+                delay:
+                const Duration(milliseconds: 80),
 
-              style: const TextStyle(
-
-                color: Colors.white,
-
-                fontSize: 28,
-
-                fontWeight: FontWeight.bold,
+                child: buildConfidenceBadge(),
               ),
+            ],
+
+            const SizedBox(height: AppSpacing.lg),
+
+            // ⚠️ AVISO MÉDICO
+            FadeSlideIn(
+
+              delay:
+              const Duration(milliseconds: 140),
+
+              child: buildMedicalDisclaimer(),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: AppSpacing.lg),
 
-            Container(
+            FadeSlideIn(
+
+              delay:
+              const Duration(milliseconds: 200),
+
+              child: Container(
 
               padding:
-              const EdgeInsets.all(20),
+              const EdgeInsets.all(AppSpacing.lg),
 
               decoration: BoxDecoration(
 
@@ -142,46 +236,46 @@ class SnakeInformationScreen
                 children: [
 
                   infoRow(
-                    'Família',
-                    snake.family,
+                    "family".tr(),
+                    widget.snake.family,
                   ),
 
                   infoRow(
-                    'Gênero',
-                    snake.genus,
+                    "genus".tr(),
+                    widget.snake.genus,
                   ),
 
                   infoRow(
-                    'Venenosa',
-                    snake.poisonous
-                        ? 'Sim'
-                        : 'Não',
+                    "poisonous".tr(),
+                    widget.snake.poisonous
+                        ? "yes".tr()
+                        : "no".tr(),
                   ),
 
                   infoRow(
-                    'Tipo de dentição',
-                    snake.dentition_type
+                    "dentition_type".tr(),
+                    widget.snake.dentition_type
                         .toString(),
                   ),
 
                   infoRow(
-                    'Tipo de veneno',
-                    snake.venomType,
+                    "venom_type".tr(),
+                    widget.snake.venomType,
                   ),
 
                   infoRow(
-                    'Antiveneno',
-                    snake.effectiveAntivenom
-                        ?? 'Não informado',
+                    "antivenom".tr(),
+                    widget.snake.effectiveAntivenom
+                        ?? "not_informed".tr(),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  const Text(
+                  Text(
 
-                    'Descrição',
+                    "description".tr(),
 
-                    style: TextStyle(
+                    style: const TextStyle(
 
                       fontSize: 20,
 
@@ -190,12 +284,12 @@ class SnakeInformationScreen
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.sm),
 
                   Text(
 
-                    snake.description
-                        ?? 'Sem descrição',
+                    widget.snake.description
+                        ?? "no_description".tr(),
 
                     style: const TextStyle(
                       fontSize: 16,
@@ -204,8 +298,144 @@ class SnakeInformationScreen
                 ],
               ),
             ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  // 🎯 BADGE DE CONFIANÇA
+  Widget buildConfidenceBadge() {
+
+    return Container(
+
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+
+      decoration: BoxDecoration(
+
+        color: AppColors.accent,
+
+        borderRadius:
+        BorderRadius.circular(20),
+      ),
+
+      child: Row(
+
+        mainAxisSize: MainAxisSize.min,
+
+        children: [
+
+          const Icon(
+
+            Icons.psychology_outlined,
+
+            color: AppColors.onBackground,
+
+            size: 18,
+          ),
+
+          const SizedBox(width: AppSpacing.sm),
+
+          Text(
+
+            "${"ai_confidence".tr()}: "
+                "${widget.confidence.toStringAsFixed(1)}%",
+
+            style: const TextStyle(
+
+              color: AppColors.onBackground,
+
+              fontWeight: FontWeight.w600,
+
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ⚠️ AVISO MÉDICO
+  // Deixa explícito que o app não substitui avaliação profissional —
+  // importante porque a tela também é usada para identificar serpentes
+  // peçonhentas, onde uma leitura errada da IA pode ter consequências
+  // graves se o usuário confiar cegamente no resultado.
+  Widget buildMedicalDisclaimer() {
+
+    return Container(
+
+      padding: const EdgeInsets.all(AppSpacing.md),
+
+      decoration: BoxDecoration(
+
+        color: Colors.amber.shade50,
+
+        borderRadius:
+        BorderRadius.circular(16),
+
+        border: Border.all(
+          color: Colors.amber.shade700,
+        ),
+      ),
+
+      child: Row(
+
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+
+        children: [
+
+          Icon(
+
+            Icons.warning_amber_rounded,
+
+            color: Colors.amber.shade800,
+          ),
+
+          const SizedBox(width: AppSpacing.sm),
+
+          Expanded(
+
+            child: Column(
+
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+
+              children: [
+
+                Text(
+
+                  "medical_disclaimer_title".tr(),
+
+                  style: TextStyle(
+
+                    fontWeight: FontWeight.bold,
+
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.xs),
+
+                Text(
+
+                  "medical_disclaimer_text".tr(),
+
+                  style: TextStyle(
+
+                    color: Colors.amber.shade900,
+
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -218,7 +448,7 @@ class SnakeInformationScreen
     return Padding(
 
       padding:
-      const EdgeInsets.only(bottom: 12),
+      const EdgeInsets.only(bottom: AppSpacing.md),
 
       child: Row(
 

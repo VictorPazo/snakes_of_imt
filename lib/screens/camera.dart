@@ -1,6 +1,7 @@
 import 'dart:io';
 import '../services/upload_service.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,7 +24,12 @@ class _CameraPageState
 
   CameraController? _controller;
 
-  late List<CameraDescription> cameras;
+  List<CameraDescription> cameras = [];
+
+  int selectedCameraIndex = 0;
+
+  FlashMode currentFlashMode =
+  FlashMode.off;
 
   final ImagePicker _picker =
   ImagePicker();
@@ -38,14 +44,26 @@ class _CameraPageState
   snakeInformationService =
   SnakeInformationService();
 
-  final Color primaryGreen =
-  const Color(0xFF12352A);
+  String? cameraErrorMessage;
+
+  // 📸 CONFIRMAÇÃO
+  // Em vez de um showDialog separado, a foto capturada/escolhida vira
+  // um estado desta própria tela — isso permite que a navegação para
+  // o resultado seja uma única transição (com Hero de verdade), em
+  // vez de duas transições encadeadas (fechar diálogo + abrir tela).
+  String? confirmImagePath;
+
+  bool confirmFromGallery = false;
+
+  bool isConfirming = false;
+
+  static const String snakePhotoHeroTag = 'snake_photo_hero';
 
   @override
   void initState() {
     super.initState();
 
-    initCamera();
+    setupCamera();
 
     WidgetsBinding.instance
         .addPostFrameCallback((_) {
@@ -54,28 +72,92 @@ class _CameraPageState
     });
   }
 
+  Future<void> setupCamera() async {
+
+    await loadInitialFlashPreference();
+
+    await initCamera();
+  }
+
   //CAMERA
   Future<void> initCamera() async {
 
-    cameras = await availableCameras();
+    setState(() {
+      cameraErrorMessage = null;
+    });
 
-    _controller = CameraController(
-      cameras[0],
-      ResolutionPreset.medium,
-    );
+    try {
 
-    await _controller!.initialize();
-    await applyFlashSetting();
+      cameras = await availableCameras();
 
-    setState(() {});
+      if (cameras.isEmpty) {
+
+        setState(() {
+          cameraErrorMessage =
+              "camera_not_found".tr();
+        });
+
+        return;
+      }
+
+      if (selectedCameraIndex >=
+          cameras.length) {
+        selectedCameraIndex = 0;
+      }
+
+      await _controller?.dispose();
+
+      _controller = CameraController(
+        cameras[selectedCameraIndex],
+        ResolutionPreset.medium,
+      );
+
+      await _controller!.initialize();
+
+      // 🔦 FLASH
+      // Reaplica o modo de flash atual (definido pela preferência
+      // salva na primeira vez, ou pelo toggle manual do usuário nas
+      // trocas seguintes) na nova controller — cada CameraController
+      // criada não herda o flash da anterior.
+      try {
+        await _controller!.setFlashMode(
+          currentFlashMode,
+        );
+      } catch (e) {
+        // Câmeras sem flash (ex: frontal) rejeitam o modo — ignora.
+      }
+
+      setState(() {});
+
+    } on CameraException catch (e) {
+
+      final bool permissionDenied =
+          e.code == 'CameraAccessDenied' ||
+          e.code == 'CameraAccessDeniedWithoutPrompt' ||
+          e.code == 'CameraAccessRestricted';
+
+      setState(() {
+
+        cameraErrorMessage = permissionDenied
+
+            ? "camera_permission_denied".tr()
+            : "camera_generic_error".tr();
+      });
+
+    } catch (e) {
+
+      setState(() {
+        cameraErrorMessage =
+            "camera_generic_error".tr();
+      });
+    }
   }
 
-  Future<void> applyFlashSetting() async {
-
-    if (_controller == null ||
-        !_controller!.value.isInitialized) {
-      return;
-    }
+  // 🔦 FLASH PADRÃO
+  // Lê a preferência salva em Configurações apenas uma vez, ao abrir
+  // a câmera — depois disso, o controle manual na própria tela (item
+  // 18) passa a mandar no modo de flash pela sessão.
+  Future<void> loadInitialFlashPreference() async {
 
     final prefs =
     await SharedPreferences.getInstance();
@@ -83,15 +165,81 @@ class _CameraPageState
     final bool autoFlash =
         prefs.getBool('autoFlash') ?? false;
 
-    try {
-      await _controller!.setFlashMode(
-        autoFlash
-            ? FlashMode.always
-            : FlashMode.off,
-      );
-    } catch (e) {
-      print(e.toString());
+    currentFlashMode = autoFlash
+        ? FlashMode.always
+        : FlashMode.off;
+  }
+
+  IconData flashIcon() {
+
+    if (currentFlashMode == FlashMode.auto) {
+      return Icons.flash_auto;
     }
+
+    if (currentFlashMode == FlashMode.torch ||
+        currentFlashMode == FlashMode.always) {
+      return Icons.flash_on;
+    }
+
+    return Icons.flash_off;
+  }
+
+  // 🔦 ALTERNAR FLASH
+  Future<void> toggleFlash() async {
+
+    if (_controller == null ||
+        !_controller!.value.isInitialized) {
+      return;
+    }
+
+    final FlashMode nextMode;
+
+    if (currentFlashMode == FlashMode.off) {
+      nextMode = FlashMode.auto;
+    } else if (currentFlashMode ==
+        FlashMode.auto) {
+      nextMode = FlashMode.torch;
+    } else {
+      nextMode = FlashMode.off;
+    }
+
+    try {
+
+      await _controller!.setFlashMode(
+        nextMode,
+      );
+
+      setState(() {
+        currentFlashMode = nextMode;
+      });
+
+    } catch (e) {
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+
+        SnackBar(
+          content: Text(
+            "flash_unavailable".tr(),
+          ),
+        ),
+      );
+    }
+  }
+
+  // 🔄 TROCAR CÂMERA
+  Future<void> switchCamera() async {
+
+    if (cameras.length < 2) return;
+
+    selectedCameraIndex =
+        (selectedCameraIndex + 1) %
+            cameras.length;
+
+    await initCamera();
   }
 
   Future<void> showTutorialPopup() async {
@@ -136,7 +284,7 @@ class _CameraPageState
               child: Container(
 
                 padding:
-                const EdgeInsets.all(20),
+                const EdgeInsets.all(AppSpacing.lg),
 
                 decoration: BoxDecoration(
 
@@ -172,7 +320,7 @@ class _CameraPageState
                     ),
 
                     const SizedBox(
-                      height: 15,
+                      height: AppSpacing.md,
                     ),
 
                     Text(
@@ -189,7 +337,7 @@ class _CameraPageState
                     ),
 
                     const SizedBox(
-                      height: 15,
+                      height: AppSpacing.md,
                     ),
 
                     Row(
@@ -230,15 +378,6 @@ class _CameraPageState
 
                     ElevatedButton(
 
-                      style:
-                      ElevatedButton.styleFrom(
-
-                        backgroundColor:
-                        const Color(
-                          0xFF12352A,
-                        ),
-                      ),
-
                       onPressed: () async {
 
                         if (checkValue) {
@@ -257,13 +396,7 @@ class _CameraPageState
                       },
 
                       child: Text(
-
                         "close".tr(),
-
-                        style:
-                        const TextStyle(
-                          color: Colors.white,
-                        ),
                       ),
                     ),
                   ],
@@ -277,323 +410,320 @@ class _CameraPageState
   }
 
   // 📸 CONFIRMAR FOTO
-  Future<void> showConfirmDialog(
-      String imagePath, {
+  Future<void> confirmPhoto() async {
 
-        required bool isFromGallery,
-      }) async {
+    final String imagePath = confirmImagePath!;
 
-    showDialog(
+    setState(() {
+      isConfirming = true;
+    });
 
-      context: context,
+    // 🚀 Upload, IA e GPS não dependem um do outro — disparamos os
+    // três ao mesmo tempo em vez de esperar cada um terminar para
+    // começar o próximo. Assim a espera real do usuário vira a do
+    // mais lento dos três, não a soma dos três.
+    final uploadFuture =
+    uploadService.uploadImage(File(imagePath));
 
-      barrierDismissible: false,
+    final predictionFuture =
+    iaService.predictSnake(File(imagePath));
 
-      builder: (dialogContext) {
+    final positionFuture =
+    Geolocator.getCurrentPosition()
+        .then<Position?>((position) => position)
+        .catchError((e) => null);
 
-        return Dialog(
+    // 🔥 UPLOAD
+    final uploadResult = await uploadFuture;
 
-          shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(20),
+    if (uploadResult == null) {
+
+      if (!mounted) return;
+
+      setState(() {
+        isConfirming = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "upload_image_error".tr(),
           ),
+        ),
+      );
 
-          child: Container(
+      return;
+    }
 
-            padding:
-            const EdgeInsets.all(20),
+    // 🔥 IA
+    final prediction = await predictionFuture;
 
-            decoration: BoxDecoration(
+    if (prediction == null) {
 
-              color: Colors.white,
+      if (!mounted) return;
 
-              borderRadius:
-              BorderRadius.circular(20),
-            ),
+      setState(() {
+        isConfirming = false;
+      });
 
-            child: Column(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "ai_identification_error".tr(),
+          ),
+        ),
+      );
 
-              mainAxisSize:
-              MainAxisSize.min,
+      return;
+    }
 
-              children: [
+    final snakeId = prediction['snake_id'];
+
+    final confidence = prediction['confidence'];
+
+    // 🔥 COBRA
+    final snake =
+    await snakeInformationService.getSnakeById(
+      snakeId,
+    );
+
+    if (snake == null) {
+
+      if (!mounted) return;
+
+      setState(() {
+        isConfirming = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "fetch_snake_error".tr(),
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // 🔥 USER
+    final user =
+        Supabase.instance.client.auth.currentUser;
+
+    // 🔥 GPS
+    final position = await positionFuture;
+
+    if (position == null) {
+
+      if (!mounted) return;
+
+      setState(() {
+        isConfirming = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "location_error".tr(),
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // 🔥 HISTÓRICO
+    // Não é aguardado: o usuário já tem o resultado pronto pra ver,
+    // e uma falha aqui já era só registrada em log, nunca mostrada —
+    // não há motivo para fazê-lo esperar por essa escrita.
+    Supabase.instance.client
+
+        .from('snake_historic')
+
+        .insert({
+
+      'profiles_id': user!.id,
+
+      'snakes_id': snake.id,
+
+      'image_url': uploadResult.filePath,
+
+      'data_photo':
+      DateTime.now().toIso8601String(),
+
+      'latitude': position.latitude,
+
+      'longitude': position.longitude,
+    }).then(
+      (_) {},
+      onError: (e) {
+        debugPrint('Erro ao salvar histórico: $e');
+      },
+    );
+
+    if (!mounted) return;
+
+    HapticFeedback.heavyImpact();
+
+    // 🔥 INFO
+    // pushReplacement (não push): o usuário já concluiu a
+    // identificação, então ao voltar da tela de resultado ele deve
+    // cair direto na Home, sem passar de novo pela tela de câmera.
+    Navigator.pushReplacement(
+
+      context,
+
+      AppPageRoute(
+
+        builder: (_) => SnakeInformationScreen(
+
+          snake: snake,
+
+          confidence:
+          (confidence as num).toDouble(),
+
+          imageUrl: uploadResult.filePath,
+
+          heroTag: snakePhotoHeroTag,
+        ),
+
+        transition: AppTransition.slide,
+      ),
+    );
+  }
+
+  // 🔄 NOVA FOTO
+  void retakePhoto() {
+
+    setState(() {
+      confirmImagePath = null;
+    });
+  }
+
+  // 📸 TELA DE CONFIRMAÇÃO
+  Widget buildConfirmScreen() {
+
+    return Container(
+
+      width: double.infinity,
+
+      height: double.infinity,
+
+      color: AppColors.background,
+
+      child: SafeArea(
+
+        child: Padding(
+
+          padding:
+          const EdgeInsets.all(AppSpacing.lg),
+
+          child: Column(
+
+            children: [
+
+              Text(
+                "confirm_title".tr(),
+
+                style: AppTextStyles.screenTitle,
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              Expanded(
+
+                child: Hero(
+
+                  tag: snakePhotoHeroTag,
+
+                  child: ClipRRect(
+
+                    borderRadius:
+                    BorderRadius.circular(20),
+
+                    child: Image.file(
+
+                      File(confirmImagePath!),
+
+                      width: double.infinity,
+
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // ⏳ PROCESSANDO
+              if (isConfirming) ...[
+
+                const CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+
+                const SizedBox(height: AppSpacing.md),
 
                 Text(
-
-                  "confirm_title".tr(),
-
-                  style:
-                  const TextStyle(
-
-                    fontSize: 22,
-
-                    fontWeight:
-                    FontWeight.bold,
-
-                    color: Colors.black,
+                  "processing_image".tr(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.onBackground,
                   ),
                 ),
-
-                const SizedBox(
-                  height: 15,
-                ),
-
-                ClipRRect(
-
-                  borderRadius:
-                  BorderRadius.circular(15),
-
-                  child: Image.file(
-
-                    File(imagePath),
-
-                    height: 200,
-
-                    fit: BoxFit.cover,
-                  ),
-                ),
-
-                const SizedBox(
-                  height: 20,
-                ),
+              ] else ...[
 
                 // 🔥 CONFIRMAR
-                ElevatedButton(
+                SizedBox(
 
-                  style:
-                  ElevatedButton.styleFrom(
+                  width: double.infinity,
 
-                    backgroundColor:
-                    const Color(
-                      0xFF12352A,
-                    ),
-                  ),
+                  child: ElevatedButton(
 
-                  onPressed: () async {
+                    onPressed: confirmPhoto,
 
-                    final dialogNavigator =
-                    Navigator.of(
-                      dialogContext,
-                    );
+                    child: Text(
 
-                    // 🔥 UPLOAD
-                    final uploadResult =
+                      confirmFromGallery
 
-                    await uploadService
-                        .uploadImage(
-                      File(imagePath),
-                    );
+                          ? "confirm_new_photo".tr()
 
-                    dialogNavigator.pop();
-
-                    if (!mounted) return;
-
-                    if (uploadResult == null) {
-
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(
-
-                        const SnackBar(
-
-                          content: Text(
-                            'Erro ao enviar imagem',
-                          ),
-                        ),
-                      );
-
-                      return;
-                    }
-
-                    // 🔥 IA
-                    final prediction =
-
-                    await iaService
-                        .predictSnake(
-                      File(imagePath),
-                    );
-
-                    if (!mounted) return;
-
-                    if (prediction == null) {
-
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(
-
-                        const SnackBar(
-
-                          content: Text(
-                            'Erro na identificação da IA',
-                          ),
-                        ),
-                      );
-
-                      return;
-                    }
-
-                    final snakeId =
-                    prediction['snake_id'];
-
-                    final confidence =
-                    prediction['confidence'];
-
-                    // 🔥 COBRA
-                    final snake =
-
-                    await snakeInformationService
-                        .getSnakeById(
-                      snakeId,
-                    );
-
-                    if (!mounted) return;
-
-                    if (snake == null) {
-
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(
-
-                        const SnackBar(
-
-                          content: Text(
-                            'Erro ao buscar cobra',
-                          ),
-                        ),
-                      );
-
-                      return;
-                    }
-
-                    // 🔥 USER
-                    final user =
-
-                        Supabase.instance.client
-                            .auth.currentUser;
-
-                    // 🔥 GPS
-                    final position =
-
-                    await Geolocator
-                        .getCurrentPosition();
-
-                    // 🔥 HISTÓRICO
-                    try {
-
-                      print("INSERTANDO...");
-
-                      await Supabase.instance.client
-
-                          .from('snake_historic')
-
-                          .insert({
-
-                        'profiles_id':
-                        user!.id,
-
-                        'snakes_id':
-                        snake.id,
-
-                        'image_url':
-                        uploadResult.filePath,
-
-                        'data_photo':
-                        DateTime.now()
-                            .toIso8601String(),
-
-                        'latitude':
-                        position.latitude,
-
-                        'longitude':
-                        position.longitude,
-                      });
-
-                      print("HISTORICO SALVO");
-
-                    } catch (e) {
-
-                      print("ERRO INSERT:");
-                      print(e.toString());
-                    }
-
-                    // 🔥 INFO
-                    Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (_) =>
-                            SnakeInformationScreen(
-
-                              snake: snake,
-
-                              confidence:
-                              (confidence as num)
-                                  .toDouble(),
-
-                              imageUrl:
-                              uploadResult.filePath,
-                            ),
-                      ),
-                    );
-                  },
-
-                  child: Text(
-
-                    isFromGallery
-
-                        ? "confirm_new_photo".tr()
-
-                        : "confirm_capture".tr(),
-
-                    style: const TextStyle(
-                      color: Colors.white,
+                          : "confirm_capture".tr(),
                     ),
                   ),
                 ),
 
-                const SizedBox(
-                  height: 10,
-                ),
+                const SizedBox(height: AppSpacing.sm),
 
                 // 🔄 NOVA FOTO
-                ElevatedButton(
+                SizedBox(
 
-                  style:
-                  ElevatedButton.styleFrom(
+                  width: double.infinity,
 
-                    backgroundColor:
-                    const Color(
-                      0xFF12352A,
+                  child: TextButton(
+
+                    style: TextButton.styleFrom(
+                      foregroundColor:
+                      AppColors.onBackground,
                     ),
-                  ),
 
-                  onPressed: () {
+                    onPressed: retakePhoto,
 
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
+                    child: Text(
 
-                  child: Text(
+                      confirmFromGallery
 
-                    isFromGallery
+                          ? "choose_new_photo".tr()
 
-                        ? "choose_new_photo".tr()
-
-                        : "new_capture".tr(),
-
-                    style: const TextStyle(
-                      color: Colors.white,
+                          : "new_capture".tr(),
                     ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -603,22 +733,19 @@ class _CameraPageState
     if (_controller != null &&
         _controller!.value.isInitialized) {
 
-      // 🔦 FLASH
-      // Garante que o modo de flash esteja sincronizado com a
-      // preferência salva antes de capturar, cobrindo o caso em
-      // que o usuário mudou a configuração e voltou para a câmera
-      // sem que a tela seja recriada.
-      await applyFlashSetting();
+      // O modo de flash já fica aplicado à controller em tempo real
+      // pelo toggle da tela (toggleFlash) e ao trocar de câmera
+      // (initCamera), então não precisa ser reaplicado aqui.
 
       final image =
       await _controller!.takePicture();
 
-      showConfirmDialog(
+      HapticFeedback.mediumImpact();
 
-        image.path,
-
-        isFromGallery: false,
-      );
+      setState(() {
+        confirmImagePath = image.path;
+        confirmFromGallery = false;
+      });
     }
   }
 
@@ -633,12 +760,10 @@ class _CameraPageState
 
     if (image != null) {
 
-      showConfirmDialog(
-
-        image.path,
-
-        isFromGallery: true,
-      );
+      setState(() {
+        confirmImagePath = image.path;
+        confirmFromGallery = true;
+      });
     }
   }
 
@@ -650,14 +775,78 @@ class _CameraPageState
     super.dispose();
   }
 
+  // ⚠️ ERRO DE CÂMERA
+  Widget buildCameraError() {
+
+    return Padding(
+
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: 32,
+      ),
+
+      child: Column(
+
+        mainAxisSize:
+        MainAxisSize.min,
+
+        children: [
+
+          const Icon(
+
+            Icons.no_photography,
+
+            color: Colors.white,
+
+            size: 60,
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+
+            cameraErrorMessage!,
+
+            textAlign: TextAlign.center,
+
+            style: const TextStyle(
+
+              color: Colors.white,
+
+              fontSize: 16,
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          ElevatedButton(
+
+            onPressed: initCamera,
+
+            child: Text(
+              "try_again".tr(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
 
-      backgroundColor: primaryGreen,
+      body: confirmImagePath != null
+          ? buildConfirmScreen()
+          : buildCameraScreen(context),
+    );
+  }
 
-      body: Stack(
+  // 📷 TELA DA CÂMERA
+  Widget buildCameraScreen(BuildContext context) {
+
+    return Stack(
 
         children: [
 
@@ -665,7 +854,11 @@ class _CameraPageState
           Center(
 
             child:
-            _controller == null ||
+            cameraErrorMessage != null
+
+                ? buildCameraError()
+
+                : _controller == null ||
 
                 !_controller!
                     .value
@@ -678,11 +871,6 @@ class _CameraPageState
                 : Container(
 
               width:
-              MediaQuery.of(context)
-                  .size
-                  .width * 0.8,
-
-              height:
               MediaQuery.of(context)
                   .size
                   .width * 0.8,
@@ -709,12 +897,80 @@ class _CameraPageState
                   16,
                 ),
 
-                child: CameraPreview(
-                  _controller!,
+                // O sensor da câmera reporta o aspect ratio em
+                // orientação paisagem (largura > altura); como o app
+                // é travado em retrato, invertemos (1 / aspectRatio)
+                // para o preview não esticar/distorcer a imagem.
+                child: AspectRatio(
+
+                  aspectRatio:
+                  1 /
+                      _controller!
+                          .value
+                          .aspectRatio,
+
+                  child: CameraPreview(
+                    _controller!,
+                  ),
                 ),
               ),
             ),
           ),
+
+          // 🔦 FLASH
+          if (cameraErrorMessage == null)
+            Positioned(
+
+              top: 60,
+              left: 20,
+
+              child: Semantics(
+
+                label: "toggle_flash".tr(),
+
+                button: true,
+
+                child: IconButton(
+
+                  icon: Icon(
+                    flashIcon(),
+                    color: Colors.white,
+                  ),
+
+                  iconSize: 28,
+
+                  onPressed: toggleFlash,
+                ),
+              ),
+            ),
+
+          // 🔄 TROCAR CÂMERA
+          if (cameraErrorMessage == null &&
+              cameras.length > 1)
+            Positioned(
+
+              top: 60,
+              right: 20,
+
+              child: Semantics(
+
+                label: "switch_camera".tr(),
+
+                button: true,
+
+                child: IconButton(
+
+                  icon: const Icon(
+                    Icons.cameraswitch,
+                    color: Colors.white,
+                  ),
+
+                  iconSize: 28,
+
+                  onPressed: switchCamera,
+                ),
+              ),
+            ),
 
           // 🔝 TOPO
           Positioned(
@@ -729,29 +985,18 @@ class _CameraPageState
 
                 children: [
 
-                  CircleAvatar(
+                  Image.asset(
 
-                    radius: 30,
+                    'assets/logo.png',
 
-                    backgroundColor:
-                    Colors.white,
+                    width: 65,
+                    height: 65,
 
-                    child: ClipOval(
-
-                      child: Image.asset(
-
-                        'assets/logo.png',
-
-                        width: 50,
-                        height: 50,
-
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    fit: BoxFit.contain,
                   ),
 
                   const SizedBox(
-                    height: 10,
+                    height: AppSpacing.sm,
                   ),
 
                   Text(
@@ -761,7 +1006,7 @@ class _CameraPageState
                     style:
                     const TextStyle(
 
-                      color: Colors.white,
+                      color: AppColors.onBackground,
 
                       fontSize: 22,
 
@@ -789,81 +1034,93 @@ class _CameraPageState
               children: [
 
                 // 🖼️ GALERIA
-                IconButton(
+                Semantics(
 
-                  icon: const Icon(
+                  label: "open_gallery".tr(),
 
-                    Icons.photo_library,
+                  button: true,
 
-                    color: Colors.white,
+                  child: IconButton(
+
+                    icon: const Icon(
+
+                      Icons.photo_library,
+
+                      color: Colors.white,
+                    ),
+
+                    iconSize: 35,
+
+                    onPressed:
+                    pickFromGallery,
                   ),
-
-                  iconSize: 35,
-
-                  onPressed:
-                  pickFromGallery,
                 ),
 
                 // 📸 FOTO
-                GestureDetector(
+                Material(
 
-                  onTap: takePhoto,
+                  color: Colors.white,
 
-                  child: Container(
-
-                    width: 85,
-                    height: 85,
-
-                    decoration: BoxDecoration(
-
-                      color: Colors.white,
-
-                      shape: BoxShape.circle,
-
-                      border: Border.all(
-
-                        color: Colors.black,
-
-                        width: 3,
-                      ),
+                  shape: const CircleBorder(
+                    side: BorderSide(
+                      color: Colors.black,
+                      width: 3,
                     ),
+                  ),
 
-                    child: const Icon(
+                  child: InkWell(
 
-                      Icons.camera_alt,
+                    customBorder: const CircleBorder(),
 
-                      color: Color(
-                        0xFF12352A,
+                    onTap: takePhoto,
+
+                    child: const SizedBox(
+
+                      width: 85,
+                      height: 85,
+
+                      child: Icon(
+
+                        Icons.camera_alt,
+
+                        color: AppColors.background,
+
+                        size: 35,
                       ),
-
-                      size: 35,
                     ),
                   ),
                 ),
 
-                IconButton(
+                // 🏠 VOLTAR
+                Semantics(
 
-                  icon: const Icon(
+                  label: "back_to_home".tr(),
 
-                    Icons.home,
+                  button: true,
 
-                    color: Colors.white,
+                  child: IconButton(
+
+                    icon: const Icon(
+
+                      Icons.home,
+
+                      color: Colors.white,
+                    ),
+
+                    iconSize: 35,
+
+                    onPressed: () {
+
+                      Navigator.pop(
+                        context,
+                      );
+                    },
                   ),
-
-                  iconSize: 35,
-
-                  onPressed: () {
-
-                    Navigator.pop(
-                      context,
-                    );
-                  },
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

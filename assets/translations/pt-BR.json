@@ -15,6 +15,7 @@
   "choose_new_photo": "Escolher nova foto",
   "identify_snake": "Identificar serpente",
   "tap_take_photo": "Toque para tirar uma foto",
+  "processing_image": "Identificando serpente...",
 
   "settings": "Configurações",
   "home": "Início",
@@ -92,6 +93,41 @@
   "delete_history_text": "Deseja remover esta identificação?",
   "delete": "Excluir",
   "history_deleted": "Histórico removido",
-  "you_are_here": "Você está aqui"
+  "you_are_here": "Você está aqui",
+
+  "camera_not_found": "Nenhuma câmera foi encontrada neste dispositivo.",
+  "camera_permission_denied": "Não foi possível acessar a câmera. Verifique se a permissão de câmera foi concedida ao aplicativo nas configurações do seu dispositivo.",
+  "camera_generic_error": "Não foi possível iniciar a câmera. Tente novamente.",
+  "try_again": "Tentar novamente",
+
+  "ai_confidence": "Confiança da IA",
+  "medical_disclaimer_title": "Aviso importante",
+  "medical_disclaimer_text": "Este aplicativo não substitui a avaliação de um médico ou biólogo. Em caso de acidente com serpente, procure atendimento médico imediatamente. O OphidIA serve apenas como ferramenta de apoio e curiosidade.",
+
+  "dentition_type": "Tipo de dentição",
+  "unknown_species": "Desconhecida",
+
+  "upload_image_error": "Erro ao enviar imagem",
+  "ai_identification_error": "Erro na identificação da IA",
+  "fetch_snake_error": "Erro ao buscar cobra",
+  "location_error": "Não foi possível obter sua localização. Verifique se o GPS está ativado e a permissão foi concedida.",
+
+  "open_gallery": "Abrir galeria",
+  "back_to_home": "Voltar para o início",
+
+  "preferences_saved": "Preferências salvas",
+
+  "logout_confirm_title": "Sair da conta?",
+  "logout_confirm_text": "Tem certeza que deseja sair da sua conta?",
+
+  "toggle_flash": "Alternar flash",
+  "switch_camera": "Trocar câmera",
+  "flash_unavailable": "Flash não disponível nesta câmera",
+
+  "swipe_to_delete_hint": "Arraste um item para a esquerda para excluí-lo",
+  "dismiss_hint": "Dispensar dica",
+
+  "location_unavailable_warning": "Não foi possível obter sua localização. Exibindo uma posição padrão no mapa.",
+  "load_markers_error": "Não foi possível carregar as identificações no mapa."
 
 }

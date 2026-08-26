@@ -17,6 +17,7 @@
 
   "identify_snake": "Identify snake",
   "tap_take_photo": "Tap to take a photo",
+  "processing_image": "Identifying snake...",
 
   "settings": "Settings",
   "home": "Home",
@@ -91,6 +92,41 @@
   "delete_history_text": "Do you want to remove this identification?",
   "delete": "Delete",
   "history_deleted": "History removed",
-  "you_are_here": "You are here"
+  "you_are_here": "You are here",
+
+  "camera_not_found": "No camera was found on this device.",
+  "camera_permission_denied": "Couldn't access the camera. Please check that camera permission was granted to the app in your device settings.",
+  "camera_generic_error": "Couldn't start the camera. Please try again.",
+  "try_again": "Try again",
+
+  "ai_confidence": "AI confidence",
+  "medical_disclaimer_title": "Important notice",
+  "medical_disclaimer_text": "This app does not replace the evaluation of a doctor or biologist. In case of a snake bite accident, seek medical care immediately. OphidIA is intended only as a support tool and for educational curiosity.",
+
+  "dentition_type": "Dentition type",
+  "unknown_species": "Unknown",
+
+  "upload_image_error": "Error uploading image",
+  "ai_identification_error": "AI identification error",
+  "fetch_snake_error": "Error fetching snake",
+  "location_error": "Couldn't get your location. Please check that GPS is turned on and permission was granted.",
+
+  "open_gallery": "Open gallery",
+  "back_to_home": "Back to home",
+
+  "preferences_saved": "Preferences saved",
+
+  "logout_confirm_title": "Log out?",
+  "logout_confirm_text": "Are you sure you want to log out of your account?",
+
+  "toggle_flash": "Toggle flash",
+  "switch_camera": "Switch camera",
+  "flash_unavailable": "Flash not available on this camera",
+
+  "swipe_to_delete_hint": "Swipe an item to the left to delete it",
+  "dismiss_hint": "Dismiss hint",
+
+  "location_unavailable_warning": "Couldn't get your location. Showing a default position on the map.",
+  "load_markers_error": "Couldn't load the sightings on the map."
 
 }

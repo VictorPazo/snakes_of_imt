@@ -1,7 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/snake_model.dart';
+import '../theme/app_theme.dart';
+import '../theme/app_page_route.dart';
+import '../theme/animated_entrance.dart';
+import '../theme/skeleton.dart';
 import 'snake_information.dart';
 import 'home.dart';
 
@@ -16,9 +23,6 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState
     extends State<HistoryPage> {
 
-  final Color primaryGreen =
-  const Color(0xFF12352A);
-
   final supabase =
       Supabase.instance.client;
 
@@ -26,11 +30,54 @@ class _HistoryPageState
 
   bool loading = true;
 
+  bool showSwipeHint = false;
+
   @override
   void initState() {
     super.initState();
 
     loadHistoric();
+
+    loadSwipeHintPreference();
+  }
+
+  // 👆 DICA DE ARRASTAR
+  // Mostra um banner discreto na primeira visita explicando que dá
+  // para arrastar um item para a esquerda para excluí-lo, já que o
+  // Dismissible não deixa isso óbvio até o usuário tentar.
+  Future<void> loadSwipeHintPreference() async {
+
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    final bool dismissed =
+        prefs.getBool(
+          'historySwipeHintDismissed',
+        ) ??
+            false;
+
+    if (!mounted) return;
+
+    setState(() {
+      showSwipeHint = !dismissed;
+    });
+  }
+
+  Future<void> dismissSwipeHint() async {
+
+    final prefs =
+    await SharedPreferences.getInstance();
+
+    await prefs.setBool(
+      'historySwipeHintDismissed',
+      true,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      showSwipeHint = false;
+    });
   }
 
   // 🔥 CARREGAR HISTÓRICO
@@ -116,6 +163,93 @@ class _HistoryPageState
           "${parsed.year}";
   }
 
+  // 👆 BANNER DA DICA
+  Widget buildSwipeHint() {
+
+    return Container(
+
+      margin:
+      const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        0,
+      ),
+
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+
+      decoration: BoxDecoration(
+
+        color: AppColors.accent,
+
+        borderRadius:
+        BorderRadius.circular(14),
+      ),
+
+      child: Row(
+
+        children: [
+
+          const Icon(
+
+            Icons.swipe_left_alt,
+
+            color: AppColors.onBackground,
+
+            size: 22,
+          ),
+
+          const SizedBox(width: AppSpacing.sm),
+
+          Expanded(
+
+            child: Text(
+
+              "swipe_to_delete_hint".tr(),
+
+              style: const TextStyle(
+
+                color: AppColors.onBackground,
+
+                fontSize: 13,
+              ),
+            ),
+          ),
+
+          Semantics(
+
+            label: "dismiss_hint".tr(),
+
+            button: true,
+
+            child: IconButton(
+
+              icon: const Icon(
+
+                Icons.close,
+
+                color: AppColors.onBackground,
+
+                size: 18,
+              ),
+
+              padding: EdgeInsets.zero,
+
+              constraints:
+              const BoxConstraints(),
+
+              onPressed: dismissSwipeHint,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🖼️ URL DA IMAGEM
   String getImageUrl(String path) {
 
@@ -135,8 +269,6 @@ class _HistoryPageState
 
     return Scaffold(
 
-      backgroundColor: primaryGreen,
-
       appBar: AppBar(
 
         backgroundColor: Colors.transparent,
@@ -149,7 +281,7 @@ class _HistoryPageState
 
           icon: const Icon(
             Icons.arrow_back,
-            color: Colors.white,
+            color: AppColors.onBackground,
           ),
 
           onPressed: () {
@@ -158,9 +290,10 @@ class _HistoryPageState
 
               context,
 
-              MaterialPageRoute(
+              AppPageRoute(
                 builder: (_) =>
                 const HomePage(),
+                transition: AppTransition.fade,
               ),
 
                   (route) => false,
@@ -168,50 +301,82 @@ class _HistoryPageState
           },
         ),
 
-        title: const Text(
-
-          "Histórico",
-
-          style: TextStyle(
-            color: Colors.white,
-          ),
+        title: Text(
+          "history".tr(),
         ),
       ),
 
       body: loading
 
-          ? const Center(
+          ? ListView.builder(
 
-        child: CircularProgressIndicator(
-          color: Colors.white,
-        ),
+        padding:
+        const EdgeInsets.all(AppSpacing.lg),
+
+        itemCount: 4,
+
+        itemBuilder: (context, index) {
+
+          return const HistoryCardSkeleton();
+        },
       )
 
           : historic.isEmpty
 
-          ? const Center(
+          ? Center(
 
-        child: Text(
+        child: Column(
 
-          "Nenhuma serpente identificada",
+          mainAxisSize: MainAxisSize.min,
 
-          style: TextStyle(
+          children: [
 
-            color: Colors.white,
+            Icon(
 
-            fontSize: 18,
-          ),
+              Icons.history_toggle_off,
+
+              size: 90,
+
+              color: AppColors.onBackground
+                  .withValues(alpha: 0.5),
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+
+            Text(
+
+              "no_history".tr(),
+
+              textAlign: TextAlign.center,
+
+              style: const TextStyle(
+
+                color: AppColors.onBackground,
+
+                fontSize: 18,
+              ),
+            ),
+          ],
         ),
       )
 
-          : ListView.builder(
+          : Column(
 
-        padding:
-        const EdgeInsets.all(20),
+        children: [
 
-        itemCount: historic.length,
+          if (showSwipeHint)
+            buildSwipeHint(),
 
-        itemBuilder: (context, index) {
+          Expanded(
+
+            child: ListView.builder(
+
+              padding:
+              const EdgeInsets.all(AppSpacing.lg),
+
+              itemCount: historic.length,
+
+              itemBuilder: (context, index) {
 
           final item = historic[index];
 
@@ -227,7 +392,14 @@ class _HistoryPageState
           final date =
           item['data_photo'];
 
-          return Dismissible(
+          return FadeSlideIn(
+
+            delay: Duration(
+              milliseconds:
+              40 * (index > 8 ? 8 : index),
+            ),
+
+            child: Dismissible(
 
             key: Key(
               item['id'].toString(),
@@ -246,12 +418,12 @@ class _HistoryPageState
 
                   return AlertDialog(
 
-                    title: const Text(
-                      "Excluir",
+                    title: Text(
+                      "delete_history".tr(),
                     ),
 
-                    content: const Text(
-                      "Deseja excluir este histórico?",
+                    content: Text(
+                      "delete_history_text".tr(),
                     ),
 
                     actions: [
@@ -266,8 +438,8 @@ class _HistoryPageState
                           );
                         },
 
-                        child: const Text(
-                          "Cancelar",
+                        child: Text(
+                          "cancel".tr(),
                         ),
                       ),
 
@@ -277,7 +449,7 @@ class _HistoryPageState
                         ElevatedButton.styleFrom(
 
                           backgroundColor:
-                          Colors.red,
+                          AppColors.danger,
                         ),
 
                         onPressed: () {
@@ -288,8 +460,8 @@ class _HistoryPageState
                           );
                         },
 
-                        child: const Text(
-                          "Excluir",
+                        child: Text(
+                          "delete".tr(),
                         ),
                       ),
                     ],
@@ -299,6 +471,8 @@ class _HistoryPageState
             },
 
             onDismissed: (_) {
+
+              HapticFeedback.mediumImpact();
 
               deleteHistoric(
                 item['id'],
@@ -312,17 +486,17 @@ class _HistoryPageState
 
               padding:
               const EdgeInsets.only(
-                right: 25,
+                right: AppSpacing.lg,
               ),
 
               margin:
               const EdgeInsets.only(
-                bottom: 20,
+                bottom: AppSpacing.lg,
               ),
 
               decoration: BoxDecoration(
 
-                color: Colors.red,
+                color: AppColors.danger,
 
                 borderRadius:
                 BorderRadius.circular(
@@ -340,68 +514,77 @@ class _HistoryPageState
               ),
             ),
 
-            child: GestureDetector(
+            child: Container(
 
-              onTap: () {
+              margin:
+              const EdgeInsets.only(
+                bottom: AppSpacing.lg,
+              ),
 
-                final snakeModel =
-                SnakeModel.fromMap(
-                  snake,
-                );
+              decoration: BoxDecoration(
 
-                Navigator.push(
-
-                  context,
-
-                  MaterialPageRoute(
-
-                    builder: (_) =>
-                        SnakeInformationScreen(
-
-                          snake: snakeModel,
-
-                          confidence: 0,
-
-                          imageUrl:
-                          imagePath,
-                        ),
-                  ),
-                );
-              },
-
-              child: Container(
-
-                margin:
-                const EdgeInsets.only(
-                  bottom: 20,
+                borderRadius:
+                BorderRadius.circular(
+                  20,
                 ),
 
-                decoration: BoxDecoration(
+                boxShadow: [
 
-                  color: Colors.white,
+                  BoxShadow(
 
-                  borderRadius:
-                  BorderRadius.circular(
-                    20,
+                    color:
+                    Colors.black
+                        .withValues(alpha: 0.08),
+
+                    blurRadius: 10,
+
+                    offset:
+                    const Offset(0, 5),
                   ),
+                ],
+              ),
 
-                  boxShadow: [
+              child: Material(
 
-                    BoxShadow(
+                color: Colors.white,
 
-                      color:
-                      Colors.black
-                          .withOpacity(0.08),
+                borderRadius:
+                BorderRadius.circular(20),
 
-                      blurRadius: 10,
+                clipBehavior: Clip.antiAlias,
 
-                      offset:
-                      const Offset(0, 5),
-                    ),
-                  ],
-                ),
+                child: InkWell(
 
-                child: Column(
+                  onTap: () {
+
+                    final snakeModel =
+                    SnakeModel.fromMap(
+                      snake,
+                    );
+
+                    Navigator.push(
+
+                      context,
+
+                      AppPageRoute(
+
+                        builder: (_) =>
+                            SnakeInformationScreen(
+
+                              snake: snakeModel,
+
+                              confidence: 0,
+
+                              imageUrl:
+                              imagePath,
+                            ),
+
+                        transition: AppTransition.slide,
+                      ),
+                    );
+                  },
+
+                  child: Column(
 
                   crossAxisAlignment:
                   CrossAxisAlignment.start,
@@ -460,7 +643,7 @@ class _HistoryPageState
 
                       padding:
                       const EdgeInsets.all(
-                        18,
+                        AppSpacing.md,
                       ),
 
                       child: Column(
@@ -474,7 +657,7 @@ class _HistoryPageState
                           Text(
 
                             snake['specie']
-                                ?? "Unknown",
+                                ?? "unknown_species".tr(),
 
                             style:
                             const TextStyle(
@@ -487,7 +670,7 @@ class _HistoryPageState
                           ),
 
                           const SizedBox(
-                            height: 15,
+                            height: AppSpacing.md,
                           ),
 
                           // ☠️ VENENOSA
@@ -512,7 +695,7 @@ class _HistoryPageState
                               ),
 
                               const SizedBox(
-                                width: 10,
+                                width: AppSpacing.sm,
                               ),
 
                               Text(
@@ -520,8 +703,8 @@ class _HistoryPageState
                                 snake['poisonous']
                                     == true
 
-                                    ? "Venenosa"
-                                    : "Não venenosa",
+                                    ? "poisonous".tr()
+                                    : "non_poisonous".tr(),
 
                                 style:
                                 const TextStyle(
@@ -532,7 +715,7 @@ class _HistoryPageState
                           ),
 
                           const SizedBox(
-                            height: 15,
+                            height: AppSpacing.md,
                           ),
 
                           // 📅 DATA
@@ -556,8 +739,13 @@ class _HistoryPageState
                 ),
               ),
             ),
+            ),
+          ),
           );
         },
+      ),
+          ),
+        ],
       ),
     );
   }

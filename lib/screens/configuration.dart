@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../theme/app_theme.dart';
+import '../theme/app_page_route.dart';
 import 'login.dart';
 
 class ConfigurationPage extends StatefulWidget {
@@ -18,9 +20,6 @@ class _ConfigurationPageState
 
   final user =
       Supabase.instance.client.auth.currentUser;
-
-  final Color primaryGreen =
-  const Color(0xFF12352A);
 
   bool notificationsEnabled = true;
   bool showConfidence = true;
@@ -68,6 +67,19 @@ class _ConfigurationPageState
     await SharedPreferences.getInstance();
 
     await prefs.setBool(key, value);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "preferences_saved".tr(),
+        ),
+
+        duration:
+        const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> resetTutorial() async {
@@ -89,16 +101,83 @@ class _ConfigurationPageState
     );
   }
 
+  Future<void> confirmLogout() async {
+
+    final bool? confirmed =
+    await showDialog<bool>(
+
+      context: context,
+
+      builder: (dialogContext) {
+
+        return AlertDialog(
+
+          title: Text(
+            "logout_confirm_title".tr(),
+          ),
+
+          content: Text(
+            "logout_confirm_text".tr(),
+          ),
+
+          actions: [
+
+            TextButton(
+
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+
+              child: Text("cancel".tr()),
+            ),
+
+            ElevatedButton(
+
+              style:
+              ElevatedButton.styleFrom(
+
+                backgroundColor:
+                Colors.red,
+              ),
+
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+
+              child: Text(
+
+                "logout".tr(),
+
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    if (!mounted) return;
+
+    await logout();
+  }
+
   Future<void> logout() async {
 
     await Supabase.instance.client.auth
         .signOut();
 
+    if (!mounted) return;
+
     Navigator.pushAndRemoveUntil(
       context,
 
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => LoginPage(),
+        transition: AppTransition.fade,
       ),
 
           (route) => false,
@@ -110,8 +189,6 @@ class _ConfigurationPageState
 
     return Scaffold(
 
-      backgroundColor: primaryGreen,
-
       appBar: AppBar(
 
         backgroundColor: Colors.transparent,
@@ -122,20 +199,12 @@ class _ConfigurationPageState
 
         title: Text(
           "settings".tr(),
-
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-        ),
-
-        iconTheme: const IconThemeData(
-          color: Colors.white,
         ),
       ),
 
       body: SingleChildScrollView(
 
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.lg),
 
         child: Column(
 
@@ -174,7 +243,7 @@ class _ConfigurationPageState
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             buildSectionTitle(
               "preferences".tr(),
@@ -190,9 +259,6 @@ class _ConfigurationPageState
 
                     value:
                     notificationsEnabled,
-
-                    activeColor:
-                    const Color(0xFF115F15),
 
                     title: Text(
                       "enable_notifications"
@@ -231,7 +297,7 @@ class _ConfigurationPageState
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             buildSectionTitle(
               "ai".tr(),
@@ -246,9 +312,6 @@ class _ConfigurationPageState
                   SwitchListTile(
 
                     value: showConfidence,
-
-                    activeColor:
-                    const Color(0xFF115F15),
 
                     title: Text(
                       "show_ai_confidence"
@@ -276,7 +339,7 @@ class _ConfigurationPageState
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             buildSectionTitle(
               "camera".tr(),
@@ -291,9 +354,6 @@ class _ConfigurationPageState
                   SwitchListTile(
 
                     value: autoFlash,
-
-                    activeColor:
-                    const Color(0xFF115F15),
 
                     title: Text(
                       "automatic_flash".tr(),
@@ -315,7 +375,7 @@ class _ConfigurationPageState
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg),
 
             buildSectionTitle(
               "about".tr(),
@@ -342,7 +402,7 @@ class _ConfigurationPageState
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: AppSpacing.xl),
 
             SizedBox(
 
@@ -354,17 +414,13 @@ class _ConfigurationPageState
                 ElevatedButton.styleFrom(
 
                   backgroundColor:
-                  Colors.red,
-
-                  padding:
-                  const EdgeInsets.all(15),
+                  AppColors.danger,
                 ),
 
-                onPressed: logout,
+                onPressed: confirmLogout,
 
                 icon: const Icon(
                   Icons.logout,
-                  color: Colors.white,
                 ),
 
                 label: Text(
@@ -372,9 +428,6 @@ class _ConfigurationPageState
                   "logout".tr(),
 
                   style: const TextStyle(
-
-                    color: Colors.white,
-
                     fontWeight:
                     FontWeight.bold,
                   ),
@@ -392,20 +445,12 @@ class _ConfigurationPageState
     return Padding(
 
       padding:
-      const EdgeInsets.only(bottom: 10),
+      const EdgeInsets.only(bottom: AppSpacing.sm),
 
       child: Text(
-
         title,
 
-        style: const TextStyle(
-
-          color: Colors.white,
-
-          fontSize: 20,
-
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppTextStyles.sectionTitle,
       ),
     );
   }

@@ -1,4 +1,8 @@
 export 'package:flutter/material.dart';
+export '../theme/app_theme.dart';
+export '../theme/app_page_route.dart';
+export '../theme/animated_entrance.dart';
+export '../theme/skeleton.dart';
 export 'camera.dart';
 export 'configuration.dart';
 export 'history.dart';

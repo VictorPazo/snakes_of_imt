@@ -16,15 +16,14 @@ class _HomePageState extends State<HomePage> {
 
   int selectedIndex = 1;
 
-  final Color primaryGreen =
-  const Color(0xFF12352A);
-
   GoogleMapController? mapController;
 
   LatLng currentPosition =
   const LatLng(-23.55052, -46.633308);
 
   Set<Marker> markers = {};
+
+  bool loadingMap = true;
 
   @override
   void initState() {
@@ -50,7 +49,11 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    setState(() {});
+    if (!mounted) return;
+
+    setState(() {
+      loadingMap = false;
+    });
   }
 
   Future<void> getUserLocation() async {
@@ -64,6 +67,9 @@ class _HomePageState extends State<HomePage> {
         .isLocationServiceEnabled();
 
     if (!serviceEnabled) {
+
+      showLocationWarning();
+
       return;
     }
 
@@ -78,22 +84,58 @@ class _HomePageState extends State<HomePage> {
 
       if (permission ==
           LocationPermission.denied) {
+
+        showLocationWarning();
+
         return;
       }
     }
 
     if (permission ==
         LocationPermission.deniedForever) {
+
+      showLocationWarning();
+
       return;
     }
 
-    Position position =
-    await Geolocator
-        .getCurrentPosition();
+    try {
 
-    currentPosition = LatLng(
-      position.latitude,
-      position.longitude,
+      Position position =
+      await Geolocator
+          .getCurrentPosition();
+
+      currentPosition = LatLng(
+        position.latitude,
+        position.longitude,
+      );
+
+    } catch (e) {
+
+      showLocationWarning();
+    }
+  }
+
+  // ⚠️ AVISO DE LOCALIZAÇÃO
+  // Sem isso, o mapa ficava centralizado silenciosamente em São
+  // Paulo (posição padrão) sempre que a localização não estivesse
+  // disponível, sem o usuário entender o motivo.
+  void showLocationWarning() {
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(
+
+      SnackBar(
+        content: Text(
+          "location_unavailable_warning".tr(),
+        ),
+
+        duration:
+        const Duration(seconds: 4),
+      ),
     );
   }
 
@@ -187,6 +229,19 @@ class _HomePageState extends State<HomePage> {
       debugPrint(
         "Erro markers: $e",
       );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+
+        SnackBar(
+          content: Text(
+            "load_markers_error".tr(),
+          ),
+        ),
+      );
     }
   }
 
@@ -200,9 +255,10 @@ class _HomePageState extends State<HomePage> {
 
           context,
 
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (_) =>
             const ConfigurationPage(),
+            transition: AppTransition.slide,
           ),
         );
 
@@ -214,9 +270,10 @@ class _HomePageState extends State<HomePage> {
 
           context,
 
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (_) =>
             const HistoryPage(),
+            transition: AppTransition.slide,
           ),
         ).then((_) {
 
@@ -231,9 +288,10 @@ class _HomePageState extends State<HomePage> {
 
           context,
 
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (_) =>
             const CameraPage(),
+            transition: AppTransition.slide,
           ),
         ).then((_) {
 
@@ -249,8 +307,6 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
 
-      backgroundColor: primaryGreen,
-
       body: Column(
 
         children: [
@@ -261,45 +317,28 @@ class _HomePageState extends State<HomePage> {
 
             children: [
 
-              CircleAvatar(
+              Image.asset(
 
-                radius: 40,
+                'assets/logo.png',
 
-                backgroundColor: Colors.white,
+                width: 90,
+                height: 90,
 
-                child: ClipOval(
-
-                  child: Image.asset(
-
-                    'assets/logo.png',
-
-                    width: 70,
-                    height: 70,
-
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                fit: BoxFit.contain,
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
 
               const Text(
 
                 "OphidIA",
 
-                style: TextStyle(
-
-                  color: Colors.white,
-
-                  fontSize: 28,
-
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.screenTitle,
               ),
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
 
           Expanded(
 
@@ -307,10 +346,14 @@ class _HomePageState extends State<HomePage> {
 
               padding:
               const EdgeInsets.symmetric(
-                horizontal: 20,
+                horizontal: AppSpacing.lg,
               ),
 
-              child: ClipRRect(
+              child: loadingMap
+
+                  ? const MapSkeleton()
+
+                  : ClipRRect(
 
                 borderRadius:
                 BorderRadius.circular(20),
@@ -344,91 +387,83 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
 
           Padding(
 
             padding:
             const EdgeInsets.symmetric(
-              horizontal: 20,
+              horizontal: AppSpacing.lg,
             ),
 
-            child: GestureDetector(
+            child: Material(
 
-              onTap: () {
+              color: AppColors.accent,
 
-                Navigator.push(
+              borderRadius:
+              BorderRadius.circular(20),
 
-                  context,
+              child: InkWell(
 
-                  MaterialPageRoute(
-                    builder: (_) =>
-                    const CameraPage(),
-                  ),
-                ).then((_) {
+                borderRadius:
+                BorderRadius.circular(20),
 
-                  loadMap();
-                });
-              },
+                onTap: () {
 
-              child: Container(
+                  Navigator.push(
 
-                width: double.infinity,
+                    context,
 
-                height: 90,
-
-                decoration: BoxDecoration(
-
-                  color:
-                  const Color(0xFF14453A),
-
-                  borderRadius:
-                  BorderRadius.circular(
-                    20,
-                  ),
-                ),
-
-                child: Row(
-
-                  mainAxisAlignment:
-                  MainAxisAlignment.center,
-
-                  children: [
-
-                    const Icon(
-
-                      Icons.camera_alt,
-
-                      color: Colors.white,
-
-                      size: 35,
+                    AppPageRoute(
+                      builder: (_) =>
+                      const CameraPage(),
+                      transition: AppTransition.slide,
                     ),
+                  ).then((_) {
 
-                    const SizedBox(width: 12),
+                    loadMap();
+                  });
+                },
 
-                    Text(
+                child: SizedBox(
 
-                      "identify_snake".tr(),
+                  width: double.infinity,
 
-                      style:
-                      const TextStyle(
+                  height: 90,
 
-                        color:
-                        Colors.white,
+                  child: Row(
 
-                        fontSize: 20,
+                    mainAxisAlignment:
+                    MainAxisAlignment.center,
 
-                        fontWeight:
-                        FontWeight.bold,
+                    children: [
+
+                      const Icon(
+
+                        Icons.camera_alt,
+
+                        color: Colors.white,
+
+                        size: 35,
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(width: AppSpacing.md),
+
+                      Text(
+
+                        "identify_snake".tr(),
+
+                        style:
+                        AppTextStyles.sectionTitle,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
         ],
       ),
 
@@ -437,12 +472,6 @@ class _HomePageState extends State<HomePage> {
         currentIndex: selectedIndex,
 
         onTap: onItemTapped,
-
-        type: BottomNavigationBarType.fixed,
-
-        selectedItemColor: Colors.black,
-
-        unselectedItemColor: Colors.black54,
 
         items: [
 
