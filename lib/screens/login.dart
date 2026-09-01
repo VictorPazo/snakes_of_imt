@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
                   await Supabase.instance.client.auth.resetPasswordForEmail(
                     resetEmailController.text,
 
-                    redirectTo: 'snakesofimt://reset-password',
+                    redirectTo: 'https://victorpazo.github.io/OphidIA/auth/redefinir-senha.html',
                   );
 
                   Navigator.pop(context);

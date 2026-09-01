@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+          margin: 0;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          background-color: #f4f6f8;
+        }
+        .card {
+          text-align: center;
+          background: #ffffff;
+          padding: 48px 40px;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          max-width: 380px;
+          width: 90%;
+        }
+        h1 {
+          font-size: 22px;
+          color: #1a1a1a;
+          margin: 0 0 8px;
+        }
+        p {
+          font-size: 14px;
+          color: #666;
+          margin: 0 0 24px;
+        }
+        .input-wrapper {
+          position: relative;
+          margin-bottom: 12px;
+        }
+        input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px 44px 12px 14px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+        input.input-error {
+          border: 1px solid #F44336FF;
+        }
+        .toggle-eye {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          cursor: pointer;
+          user-select: none;
+          font-size: 18px;
+          color: #888;
+          background: none;
+          border: none;
+          padding: 0;
+          width: auto;
+        }
+        .error-text {
+          text-align: left;
+          color: #F44336FF;
+          font-size: 12px;
+          white-space: pre-line;
+          margin: -6px 0 12px;
+          display: none;
+        }
+        button {
+          width: 100%;
+          padding: 12px;
+          border: none;
+          border-radius: 8px;
+          background-color: #2563eb;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        button:disabled {
+          background-color: #93c5fd;
+          cursor: not-allowed;
+        }
+        .message {
+          margin-top: 16px;
+          font-size: 14px;
+          display: none;
+        }
+        .success { color: #16a34a; }
+        .error { color: #dc2626; }
+        .icon {
+          font-size: 44px;
+          margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="card" id="card">
+    <div id="formView">
+        <h1>Redefinir senha</h1>
+        <p>Digite sua nova senha abaixo.</p>
+
+        <div class="input-wrapper">
+            <input type="password" id="newPassword" placeholder="Nova senha" />
+            <button type="button" class="toggle-eye" onclick="togglePassword('newPassword', this)">👁️</button>
+        </div>
+        <p id="newPasswordError" class="error-text"></p>
+
+        <div class="input-wrapper">
+            <input type="password" id="confirmPassword" placeholder="Confirme a nova senha" />
+            <button type="button" class="toggle-eye" onclick="togglePassword('confirmPassword', this)">👁️</button>
+        </div>
+        <p id="confirmPasswordError" class="error-text"></p>
+
+        <button id="submitBtn" onclick="handleReset()">Redefinir senha</button>
+        <p id="message" class="message"></p>
+    </div>
+
+    <div id="successView" style="display:none;">
+        <div class="icon">✅</div>
+        <h1>Senha redefinida!</h1>
+        <p>Sua senha foi alterada com sucesso. Você já pode fazer login com a nova senha.</p>
+    </div>
+</div>
+
+<script>
+    // ATENÇÃO: troque pelos dados do SEU projeto Supabase
+    const SUPABASE_URL = 'https://SEU_PROJETO.supabase.co';
+    const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI';
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let recoverySessionReady = false;
+
+    // Trata o caso PKCE (?code=xxx na URL) trocando o code por uma sessão
+    async function exchangeCodeIfPresent() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code) {
+        const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
+        if (!error) {
+          recoverySessionReady = true;
+        }
+      }
+    }
+
+    // Escuta o evento disparado quando o supabase-js termina de processar
+    // o token de recovery vindo do fragmento (#access_token=...&type=recovery)
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        recoverySessionReady = true;
+      }
+    });
+
+    // Verificação inicial: cobre o caso de a sessão já ter sido processada
+    // antes do listener acima ser registrado
+    async function checkExistingSession() {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data.session) {
+        recoverySessionReady = true;
+      }
+    }
+
+    exchangeCodeIfPresent();
+    checkExistingSession();
+
+    const messageEl = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const newPasswordError = document.getElementById('newPasswordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+    // Mesmo padrão de senha forte usado no app (equivalente ao regex em Dart)
+    function senhaForte(senha) {
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+      return regex.test(senha);
+    }
+
+    const SENHA_FRACA_MSG =
+      'A senha deve conter:\n' +
+      '- mínimo 8 caracteres\n' +
+      '- letra maiúscula\n' +
+      '- letra minúscula\n' +
+      '- número\n' +
+      '- caractere especial';
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    function setFieldError(input, errorEl, text) {
+      if (text) {
+        input.classList.add('input-error');
+        errorEl.textContent = text;
+        errorEl.style.display = 'block';
+      } else {
+        input.classList.remove('input-error');
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+      }
+    }
+
+    function showMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = 'message ' + type;
+      messageEl.style.display = 'block';
+    }
+
+    async function handleReset() {
+      const newPassword = newPasswordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      // Limpa estados anteriores
+      setFieldError(newPasswordInput, newPasswordError, '');
+      setFieldError(confirmPasswordInput, confirmPasswordError, '');
+      messageEl.style.display = 'none';
+
+      let hasError = false;
+
+      if (!senhaForte(newPassword)) {
+        setFieldError(newPasswordInput, newPasswordError, SENHA_FRACA_MSG);
+        hasError = true;
+      }
+
+      if (confirmPassword !== newPassword || !senhaForte(confirmPassword)) {
+        // Se a senha principal já é fraca, a confirmação também não deve seguir adiante
+        if (confirmPassword !== newPassword) {
+          setFieldError(confirmPasswordInput, confirmPasswordError, 'As senhas não coincidem.');
+        } else if (!senhaForte(confirmPassword)) {
+          setFieldError(confirmPasswordInput, confirmPasswordError, SENHA_FRACA_MSG);
+        }
+        hasError = true;
+      }
+
+      if (hasError) {
+        return; // Não permite trocar a senha se não atender ao padrão
+      }
+
+      if (!recoverySessionReady) {
+        showMessage(
+          'Link inválido ou expirado. Solicite a redefinição de senha novamente.',
+          'error'
+        );
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Redefinindo...';
+
+      const { error } = await supabaseClient.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        showMessage('Erro ao redefinir senha: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Redefinir senha';
+        return;
+      }
+
+      document.getElementById('formView').style.display = 'none';
+      document.getElementById('successView').style.display = 'block';
+    }
+
+    // O Supabase injeta o token de recovery automaticamente na URL (hash)
+    // e a biblioteca supabase-js já lida com isso internamente ao detectar a sessão.
+</script>
+</body>
+</html>
