@@ -1,9 +1,12 @@
 import io
 import json
 
+from pathlib import Path
+
 from fastapi import FastAPI, UploadFile, File
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 from torchvision import transforms, models
@@ -11,10 +14,40 @@ from torchvision import transforms, models
 from PIL import Image
 
 # =========================
+# CONFIG
+# =========================
+
+# Caminhos resolvidos a partir do próprio arquivo, e não do diretório de
+# trabalho: assim o servidor pode ser iniciado de qualquer lugar.
+BASE_DIR = Path(__file__).resolve().parent
+
+MODEL_PATH = BASE_DIR / "best_model.pth"
+
+CLASSES_PATH = BASE_DIR / "classes.json"
+
+# Estes três valores PRECISAM bater com o treino que gerou best_model.pth
+# (ver treino_v2/config_utilizada.json). Divergir aqui não gera erro — só
+# derruba a acurácia silenciosamente.
+ARCHITECTURE = "convnext_tiny"
+
+IMG_SIZE = 384
+
+DROPOUT = 0.4
+
+# TTA por espelhamento horizontal, igual à avaliação final do treino.
+# É o que produz os 76,82% de accuracy relatados; sem TTA são 76,42%.
+# Custa uma segunda passagem pela rede por imagem.
+USE_TTA = True
+
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
+# =========================
 # APP
 # =========================
 
-app = FastAPI()
+app = FastAPI(title="OphidIA — inferência de serpentes")
 
 # =========================
 # DEVICE
@@ -29,14 +62,32 @@ DEVICE = torch.device(
 # LOAD CLASSES
 # =========================
 
-with open("classes.json", "r") as f:
+with open(CLASSES_PATH, "r", encoding="utf-8") as f:
     class_names = json.load(f)
 
+
+def to_scientific_name(class_name: str) -> str:
+    """
+    O classes.json guarda o nome da PASTA do dataset ('Bothrops_jararaca'),
+    enquanto o app e a coluna `specie` da tabela `snakes` usam o nome
+    científico com espaço.
+
+    Três classes ('Chironius', 'Hydrodynastes', 'Thamnodynastes') são de
+    gênero apenas, sem epíteto, e passam por aqui inalteradas.
+    """
+    return class_name.replace("_", " ")
+
+
 # =========================
-# CLASS -> DATABASE ID
+# SPECIE -> DATABASE ID
 # =========================
 
-CLASS_TO_ID = {
+# O modelo reconhece 246 espécies, mas só as já cadastradas na tabela
+# `snakes` têm id. As demais retornam snake_id: null — o app trata esse
+# caso. Conforme o pipeline de lib/scripts/ for rodando para novos
+# gêneros, acrescente as espécies aqui.
+
+SPECIE_TO_ID = {
 
     "Bothrops alcatraz": 1,
     "Bothrops alternatus": 2,
@@ -78,15 +129,21 @@ CLASS_TO_ID = {
 # TRANSFORM
 # =========================
 
+# Precisa ser idêntico ao eval_transform do treino: redimensiona o lado
+# menor para 1,14x e recorta o centro. Trocar por um Resize((N, N)) achata
+# a imagem e distorce a proporção que a rede viu no treino.
+
 transform = transforms.Compose([
 
-    transforms.Resize((300, 300)),
+    transforms.Resize(int(IMG_SIZE * 1.14)),
+
+    transforms.CenterCrop(IMG_SIZE),
 
     transforms.ToTensor(),
 
     transforms.Normalize(
-        [0.485, 0.456, 0.406],
-        [0.229, 0.224, 0.225]
+        IMAGENET_MEAN,
+        IMAGENET_STD
     )
 ])
 
@@ -94,18 +151,22 @@ transform = transforms.Compose([
 # LOAD MODEL
 # =========================
 
-model = models.efficientnet_b3(
-    pretrained=False
-)
+# A cabeça é montada exatamente como em create_model() do treino:
+# classifier[2] vira um Sequential(Dropout, Linear), o que produz as
+# chaves 'classifier.2.0' / 'classifier.2.1' no state_dict.
 
-model.classifier[1] = torch.nn.Linear(
-    model.classifier[1].in_features,
-    len(class_names)
+model = models.convnext_tiny(weights=None)
+
+in_features = model.classifier[2].in_features
+
+model.classifier[2] = nn.Sequential(
+    nn.Dropout(DROPOUT),
+    nn.Linear(in_features, len(class_names)),
 )
 
 model.load_state_dict(
     torch.load(
-        "best_model_b3_v2.pth",
+        MODEL_PATH,
         map_location=DEVICE
     )
 )
@@ -136,25 +197,31 @@ async def predict(
 
     with torch.no_grad():
 
-        output = model(image)
+        probs = F.softmax(
+            model(image),
+            dim=1
+        )
 
-        probs = F.softmax(output, dim=1)
+        if USE_TTA:
+
+            probs_flip = F.softmax(
+                model(torch.flip(image, dims=[3])),
+                dim=1
+            )
+
+            probs = (probs + probs_flip) / 2
 
         confidence, predicted = torch.max(probs, 1)
 
-    predicted_class = class_names[
-        predicted.item()
-    ]
-
-    snake_id = CLASS_TO_ID[
-        predicted_class
-    ]
+    specie = to_scientific_name(
+        class_names[predicted.item()]
+    )
 
     return {
 
-        "snake_id": snake_id,
+        "snake_id": SPECIE_TO_ID.get(specie),
 
-        "specie": predicted_class,
+        "specie": specie,
 
         "confidence":
         round(confidence.item() * 100, 2)

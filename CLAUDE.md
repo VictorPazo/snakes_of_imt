@@ -5,8 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project overview
 
 OphidIA (repo name `snakes_of_imt`) is an academic capstone project: a cross-platform Flutter mobile app that
-classifies Brazilian snake species (currently scoped to genus *Bothrops*) from a photo, using a PyTorch/EfficientNet-B3
-model served over a separate FastAPI backend. The app also shows species info (venom type, antivenom) and a map of
+classifies Brazilian snake species from a photo, using a PyTorch/ConvNeXt-Tiny model served over a separate FastAPI
+backend. The current model covers **246 species across 59 genera** (~61% of Brazil's snakes) at 76.8% top-1 / 90.0%
+top-3 accuracy; it was trained outside this repo (`D:\treino_v2`) on the `D:\serpentes_512` dataset.
+The app also shows species info (venom type, antivenom) and a map of
 nearby sighting records via Google Maps.
 
 The repo contains three loosely-coupled parts:
@@ -29,15 +31,25 @@ flutter test test/widget_test.dart   # run a single test file
 Note: `test/widget_test.dart` is still the default Flutter counter-app template and does not test this app's actual
 widgets — don't treat it as a meaningful example of test coverage or app behavior.
 
-Python inference backend (`lib/models/`, run from that directory):
+Python inference backend (`lib/models/`):
 ```bash
 cd lib/models
+pip install -r requirements.txt   # torch/torchvision, fastapi, uvicorn, python-multipart, pillow
 python main.py                # not directly runnable; serve with uvicorn, e.g.:
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
-The server loads `classes.json` and `best_model_b3_v2.pth` from the current working directory, so it must be started
-from inside `lib/models/`. It exposes a single `POST /predict` endpoint (multipart image upload) returning
-`{snake_id, specie, confidence}`.
+`requirements.txt` also carries the training/eval-only extras (numpy, matplotlib, scikit-learn, pandas) used by the
+`.py` scripts in the same folder; the server itself doesn't need them. Installing `torch` from PyPI gives the CPU
+build — for GPU, use `--index-url https://download.pytorch.org/whl/cu130` as noted in the file.
+The server resolves `classes.json` and `best_model.pth` relative to its own file, so it can be started from any
+directory. It exposes a single `POST /predict` endpoint (multipart image upload) returning
+`{snake_id, specie, confidence}`, where **`snake_id` is null** for any species not yet mapped in `SPECIE_TO_ID`
+(currently only the 26 *Bothrops* rows) — callers must handle that.
+
+`best_model.pth` is **not in git** (107 MB, over GitHub's 100 MB per-file limit; `*.pth` is gitignored). Copy it from
+`D:\treino_v2\checkpoints\` before starting the server. `ARCHITECTURE`, `IMG_SIZE` and `DROPOUT` at the top of
+`main.py` must match `D:\treino_v2\config_utilizada.json` — a mismatch in the transform degrades accuracy silently
+rather than raising.
 
 Python Supabase-population pipeline (`lib/scripts/`):
 ```bash
@@ -70,8 +82,7 @@ a thin class around a single `Supabase.instance.client` or `http` call — no sh
 - `IAService` (in `agent_service.dart`) — calls the FastAPI `/predict` endpoint with a captured/picked image file.
   **`baseUrl` is a hardcoded local IP/placeholder** ("colocar ip aqui") — it must point at wherever `lib/models`'
   FastAPI server is actually running (same LAN IP:8000 during development), so update it when the inference server's
-  host changes. This file currently has an **unresolved git merge conflict** (`<<<<<<< Updated upstream` /
-  `>>>>>>> Stashed changes` around the `baseUrl` value) — resolve it before relying on this service.
+  host changes.
 
 **Models** (`lib/models/*.dart`) are plain Dart data classes with a `fromMap` factory matching the Supabase table
 schema (snake_case keys from Postgres mapped to Dart fields), e.g. `SnakeModel`, `UploadResult`. Don't confuse these
