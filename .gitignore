@@ -44,3 +44,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Pesos do modelo de inferência (lib/models/*.pth).
+# best_model.pth tem 107 MB e estoura o limite de 100 MB por arquivo do
+# GitHub. Copie-o de D:\treino_v2\checkpoints\ ao montar o servidor.
+*.pth

@@ -1,0 +1,31 @@
+# Dependências do servidor de inferência (main.py).
+#
+#   pip install -r requirements.txt
+#   python -m uvicorn main:app --host 0.0.0.0 --port 8000
+#
+# ATENÇÃO ao torch: a versão desta máquina é a build com CUDA (2.12.0+cu130),
+# que NÃO vem do PyPI. Para reproduzir a aceleração por GPU em outro PC:
+#
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+#
+# Um `pip install torch` normal instala a build de CPU, que também funciona —
+# só fica mais lenta (o README do treino mediu 10 ms em GPU contra 83 ms em CPU).
+
+torch>=2.12.0
+torchvision>=0.27.0
+
+fastapi>=0.136.0
+uvicorn>=0.47.0
+
+# Obrigatório: o FastAPI só aceita o UploadFile do /predict com ele instalado.
+python-multipart>=0.0.29
+
+pillow>=12.0.0
+
+# --- Somente para os scripts de treino/avaliação desta mesma pasta ---
+# (treinamento_ia_atualizado.py, classificacao_em_teste.py, augmentation.py).
+# O servidor não precisa de nenhum destes.
+numpy>=2.4.0
+matplotlib>=3.11.0
+scikit-learn>=1.9.0
+pandas>=3.0.0

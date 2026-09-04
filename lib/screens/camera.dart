@@ -482,8 +482,12 @@ class _CameraPageState
     final confidence = prediction['confidence'];
 
     // 🔥 COBRA
-    final snake =
-    await snakeInformationService.getSnakeById(
+    // O modelo reconhece 246 espécies, mas só as já cadastradas na tabela
+    // `snakes` têm id — nas demais o servidor devolve snake_id: null.
+    // Cai no mesmo tratamento de "espécie não encontrada" logo abaixo.
+    final snake = snakeId == null
+        ? null
+        : await snakeInformationService.getSnakeById(
       snakeId,
     );
 

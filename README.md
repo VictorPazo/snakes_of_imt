@@ -6,6 +6,8 @@ Este trabalho foi submetido ao **CONIC-SEMESP** (Congresso Nacional de Iniciaç�
 
 > 🇺🇸 **[Read this in English](#-ophidia-1)**
 
+> ⚙️ **[Como rodar o projeto em outra máquina — SETUP.md](SETUP.md)**
+
 ---
 
 ## 📱 Telas do Aplicativo
@@ -83,6 +85,8 @@ O artigo completo submetido ao CONIC-SEMESP está disponível no repositório.
 Repository containing the development of an academic capstone project (undergraduate thesis) for a Computer Science degree, aimed at developing a **cross-platform mobile application** that uses **Computer Vision** and **Deep Learning** to classify Brazilian snake species from images, providing quick and educational information for the population — especially in rural areas — assisting in the correct identification of the species and the initial actions to be taken in the event of snakebites.
 
 This work was submitted to **CONIC-SEMESP** (National Congress of Scientific Initiation), in the "Work in Progress" category.
+
+> ⚙️ **[How to run the project on another machine — SETUP.md](SETUP.md)**
 
 ---
 
