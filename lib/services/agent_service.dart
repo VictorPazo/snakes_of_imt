@@ -6,9 +6,10 @@ import 'package:http/http.dart' as http;
 
 class IAService {
 
-  //colocar ip da máquina local
+  // Colocar ip da máquina local
+  // Formato - 'http://SEUIP:8000'
   final String baseUrl =
-      'http://192.168.0.55:8000';
+      '';
 
   Future<Map<String, dynamic>?> predictSnake(
       File imageFile,

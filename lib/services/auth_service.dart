@@ -31,6 +31,16 @@ class AuthService {
               '- caractere especial';
       }
 
+      final existente = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('mail', email.trim().toLowerCase())
+          .maybeSingle();
+
+      if (existente != null) {
+        return 'Email já está cadastrado. Faça login!';
+      }
+
       final AuthResponse response =
       await supabase.auth.signUp(
         email: email,
@@ -57,7 +67,7 @@ class AuthService {
         switch (e.message) {
 
           case 'User already registered':
-            return 'Este email já está cadastrado';
+            return 'Este email já está cadastrado. Faça login.';
 
           default:
             return 'Erro ao cadastrar usuário';

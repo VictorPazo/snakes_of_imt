@@ -23,6 +23,10 @@ void main() async {
 
     anonKey:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaXNjendtY2hwb3Vxcmt4aGxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMDUzOTcsImV4cCI6MjA5MzY4MTM5N30.XgGudHdIjJiIVOKG4i07UueyO3bA3tKcKdf4zCzzbnM',
+
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.implicit,
+    ),
   );
 
   runApp(
@@ -59,7 +63,7 @@ class MyApp extends StatelessWidget {
 
       debugShowCheckedModeBanner: false,
 
-      title: 'Snakes of IMT',
+      title: 'OphidIA',
 
       locale: context.locale,
 
